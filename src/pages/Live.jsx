@@ -141,20 +141,14 @@ const Live = () => {
     const poolSource = slotPoolDaily.length ? slotPoolDaily : slotPoolAll;
     const pool = poolSource.map((item) => String(item?.activity ?? '').trim()).filter(Boolean);
 
-    const fallbacks = {
-      '13-15': SLOT_ACTIVITY_MAP['13-15'],
-      '16-18': SLOT_ACTIVITY_MAP['16-18'],
-      '20-21': SLOT_ACTIVITY_MAP['20-21'],
-    };
-
-    // 按需求：优先使用管理界面的“固定安排/活动池”配置；
-    // 如果管理未配置该时段，则回退到硬编码默认值。
+    // 按需求：管理界面可控“当前显示”。
+    // 若该时段活动池为空（例如你在管理界面删除了所有日程），则在前端明确展示“未配置活动”，避免兜底导致看起来没生效。
     const activity = pool.length
       ? selectDeterministic(
           pool,
           slot.liveType === '随机' ? `${todayISO}-${slot.key}` : `${slot.key}-fixed`
         )
-      : fallbacks[slot.key];
+      : '未配置活动';
     return {
       slotKey: slot.key,
       date: todayCN,
@@ -169,7 +163,7 @@ const Live = () => {
     const scheduled = dailySchedule.find((d) => d.slotKey === slot.key);
     return {
       id: `auto-${todayISO}-${slot.key}`,
-      title: scheduled?.title || '',
+      title: scheduled?.title || '未配置活动',
       date: '今天',
       time: slot.slotZh,
       timeRangeDisplay: slot.timeRangeDisplay,
