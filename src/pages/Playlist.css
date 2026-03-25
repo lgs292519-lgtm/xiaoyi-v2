@@ -185,7 +185,7 @@
 /* 提高优先级，避免被其他页面 .song-info span 等全局样式覆盖 */
 .playlist-page .song-info .song-name {
   font-size: 1rem;
-  color: #111111;
+  color: #ffffff;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
