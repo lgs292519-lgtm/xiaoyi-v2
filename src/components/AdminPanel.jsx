@@ -443,7 +443,7 @@ const AdminPanel = ({ onClose }) => {
                     />
                     <input
                       type="text"
-                      placeholder="时间（填：13:00 - 15:00 / 16:00 - 18:00 / 20:00 - 21:00）"
+                      placeholder="时间（填：13:00 - 15:00 / 16:00 - 18:00 / 20:00 - 21:00 或 13-15）"
                       value={newSchedule.time}
                       onChange={e => setNewSchedule({ ...newSchedule, time: e.target.value })}
                     />

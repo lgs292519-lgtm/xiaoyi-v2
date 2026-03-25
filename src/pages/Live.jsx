@@ -13,18 +13,36 @@ const WEEKDAY_TO_CN = {
   6: '周六',
 };
 
-const SLOT_DEFS = [
-  { key: '13-15', startMin: 13 * 60, endMin: 15 * 60, slotZh: '13-15点', timeRangeDisplay: '13：00-15：00', liveType: '固定' },
-  { key: '16-18', startMin: 16 * 60, endMin: 18 * 60, slotZh: '16-18点', timeRangeDisplay: '16：00-18：00', liveType: '固定' },
-  { key: '20-21', startMin: 20 * 60, endMin: 21 * 60, slotZh: '20-21点', timeRangeDisplay: '20：00-21：00', liveType: '随机' },
-];
+function parseTimeRangeToSlot(timeStr) {
+  // 支持：13:00 - 15:00 / 13-15 / 20:00-21:00
+  const raw = String(timeStr ?? '').trim()
+  if (!raw) return null
+  const s = raw.replace(/\s/g, '').replace(/点/g, '')
 
-// 按需求：即将直播卡片的标题固定展示为这三类
-const SLOT_ACTIVITY_MAP = {
-  '13-15': '小意出没，歌声相伴',
-  '16-18': '小意出没，歌声相伴',
-  '20-21': '小意出没，歌声相伴',
-};
+  // 重点：优先匹配 “HH:00-HH:00” 或 “HH:00-HH”
+  const m1 = s.match(/^(\d{1,2})(?::[0]*0)?[-—~至](\d{1,2})(?::[0]*0)?$/)
+  // 次级：匹配 “HH-HH”
+  const m2 = !m1 ? s.match(/^(\d{1,2})[-—~至](\d{1,2})$/) : null
+  const m = m1 || m2
+  if (!m) return null
+
+  const startHour = Number(m[1])
+  const endHour = Number(m[2])
+  if (!Number.isFinite(startHour) || !Number.isFinite(endHour)) return null
+  if (startHour < 0 || startHour > 24) return null
+  if (endHour < 0 || endHour > 24) return null
+
+  const startMin = startHour * 60
+  const endMin = endHour * 60
+  const slotKey = `${startHour}-${endHour}`
+  const slotZh = `${startHour}-${endHour}点`
+  const timeRangeDisplay = `${startHour}：00-${endHour}：00`
+
+  let liveType = '固定'
+  if (slotKey === '20-21') liveType = '随机'
+
+  return { slotKey, startHour, endHour, startMin, endMin, slotZh, timeRangeDisplay, liveType }
+}
 
 function clampInt(n, { min, max, fallback }) {
   const v = Number.parseInt(String(n ?? ''), 10);
@@ -60,19 +78,12 @@ function parseSlotKeyFromRegularScheduleTime(timeStr) {
 }
 
 function parseHourFromTime(timeStr) {
-  const m = String(timeStr ?? '').match(/(\d{1,2})\s*[:：]/);
-  if (!m) return null;
-  const hh = Number(m[1]);
+  // 兼容：20:00、20点、20-21等，取第一个小时数字
+  const m = String(timeStr ?? '').match(/(\d{1,2})/);
+  if (!m) return null
+  const hh = Number(m[1])
   if (!Number.isFinite(hh)) return null;
   return clampInt(hh, { min: 0, max: 23, fallback: null });
-}
-
-function parseSlotKeyFromHour(hour) {
-  if (hour === null || hour === undefined) return null;
-  if (hour >= 13 && hour < 16) return '13-15';
-  if (hour >= 16 && hour < 19) return '16-18';
-  if (hour >= 20 && hour < 22) return '20-21';
-  return null;
 }
 
 function selectDeterministic(arr, seedStr) {
@@ -125,111 +136,100 @@ const Live = () => {
   const todayCN = WEEKDAY_TO_CN[now.getDay()];
   const nowMinutes = getNowMinutes(now);
 
-  const dailySchedule = SLOT_DEFS.map((slot) => {
-    const slotPoolAll = (regularSchedule || [])
-      .filter((item) => {
-        const slotKey = parseSlotKeyFromRegularScheduleTime(item?.time);
-        return slotKey === slot.key;
-      });
+  // 从固定安排（regularSchedule）动态生成：没有配置的时段不展示
+  const scheduleEntriesBySlotKey = new Map() // slotKey => { parsedSlot, entries }
+  for (const item of (regularSchedule || [])) {
+    if (!item) continue
+    const parsed = parseTimeRangeToSlot(item?.time)
+    if (!parsed) continue
 
-    // 如果管理界面里存在 day=“每天”的配置，就只用它；否则兼容旧数据（周三/周六等），也让它每天可用。
-    const slotPoolDaily = slotPoolAll.filter((item) => {
-      const day = String(item?.day ?? '');
-      return !day || day === '每天' || day === todayCN;
-    });
+    const key = parsed.slotKey
+    if (!scheduleEntriesBySlotKey.has(key)) {
+      scheduleEntriesBySlotKey.set(key, { parsedSlot: parsed, entries: [] })
+    }
+    scheduleEntriesBySlotKey.get(key).entries.push(item)
+  }
 
-    const poolSource = slotPoolDaily.length ? slotPoolDaily : slotPoolAll;
-    const pool = poolSource.map((item) => String(item?.activity ?? '').trim()).filter(Boolean);
+  const dailySchedule = []
+  for (const [slotKey, value] of scheduleEntriesBySlotKey.entries()) {
+    const { parsedSlot, entries } = value
 
-    // 按需求：管理界面可控“当前显示”。
-    // 若该时段活动池为空（例如你在管理界面删除了所有日程），则在前端明确展示“未配置活动”，避免兜底导致看起来没生效。
-    const activity = pool.length
-      ? selectDeterministic(
-          pool,
-          slot.liveType === '随机' ? `${todayISO}-${slot.key}` : `${slot.key}-fixed`
-        )
-      : '未配置活动';
-    return {
-      slotKey: slot.key,
-      date: todayCN,
-      timeRangeDisplay: slot.timeRangeDisplay,
-      liveType: slot.liveType,
-      title: activity,
-    };
-  });
+    const slotPoolDaily = entries.filter((e) => {
+      const day = String(e?.day ?? '')
+      return !day || day === '每天' || day === todayCN
+    })
+    const poolSource = slotPoolDaily.length ? slotPoolDaily : entries
+    const pool = poolSource.map((e) => String(e?.activity ?? '').trim()).filter(Boolean)
+    if (!pool.length) continue // 无配置 => 隐藏该时段
 
-  // 生成“即将直播”预告：只展示还没过去的时段
-  const autoUpcomingSlots = SLOT_DEFS.filter((slot) => nowMinutes < slot.startMin).map((slot) => {
-    const scheduled = dailySchedule.find((d) => d.slotKey === slot.key);
-    return {
-      id: `auto-${todayISO}-${slot.key}`,
-      title: scheduled?.title || '未配置活动',
-      date: '今天',
-      time: slot.slotZh,
-      timeRangeDisplay: slot.timeRangeDisplay,
-      liveType: slot.liveType,
-      platform: 'douyin',
-      status: '预告',
-      _slotKey: slot.key,
-      _startMin: slot.startMin,
-    };
-  });
+    const liveType = parsedSlot.liveType
+    const seedStr = liveType === '随机' ? `${todayISO}-${slotKey}` : `${slotKey}-fixed`
+    const title = selectDeterministic(pool, seedStr)
 
-  // 管理界面“即将直播”可自定义增加：这里将手动预告与自动预告合并。
-  // 若手动预告属于同一时段且日期是“今天”，则用手动标题覆盖自动标题，避免重复。
-  const overrides = new Map();
+    dailySchedule.push({
+      slotKey,
+      startHour: parsedSlot.startHour,
+      startMin: parsedSlot.startMin,
+      timeRangeDisplay: parsedSlot.timeRangeDisplay,
+      time: parsedSlot.slotZh,
+      liveType,
+      title,
+    })
+  }
 
-  const todayStartMin = nowMinutes;
+  dailySchedule.sort((a, b) => a.startMin - b.startMin)
+
+  // 即将直播：只展示未来的已配置时段；若管理端手动预告属于该时段，会覆盖标题
+  const slotByStartHour = new Map(dailySchedule.map((s) => [s.startHour, s]))
+  const overrides = new Map() // slotKey => manual live
   for (const m of upcomingLivesManual) {
-    if (!m) continue;
-    const manualDate = String(m.date ?? '');
-    const hour = parseHourFromTime(m.time);
-    const manualSlotKey = parseSlotKeyFromHour(hour);
-    const isToday = manualDate === todayCN || manualDate === '今天';
-    const startMin = hour !== null ? hour * 60 : null;
-    const passed = isToday && startMin !== null && startMin < todayStartMin;
-    if (passed) continue;
+    if (!m) continue
+    const manualDate = String(m.date ?? '')
+    const isToday = manualDate === todayCN || manualDate === '今天'
+    if (!isToday) continue
 
-    // 需求：即将直播只展示今天三个时段，其他日期的手动预告不参与展示。
-    if (isToday && manualSlotKey) {
-      overrides.set(manualSlotKey, m);
-    }
+    const hour = parseHourFromTime(m.time)
+    if (hour === null) continue
+    const slot = slotByStartHour.get(hour)
+    if (!slot) continue // fixed 安排不存在 => 不展示
+    if (slot.startMin < nowMinutes) continue // 已开始/已过去 => 不展示在即将直播
+
+    overrides.set(slot.slotKey, m)
   }
 
-  const upcomingLives = [];
-  for (const auto of autoUpcomingSlots) {
-    const override = overrides.get(auto._slotKey);
-    if (override) {
-      upcomingLives.push({
+  const upcomingLives = dailySchedule
+    .filter((slot) => nowMinutes < slot.startMin)
+    .map((slot) => {
+      const override = overrides.get(slot.slotKey)
+      if (!override) {
+        return {
+          id: `auto-${todayISO}-${slot.slotKey}`,
+          title: slot.title,
+          date: '今天',
+          time: slot.time,
+          timeRangeDisplay: slot.timeRangeDisplay,
+          liveType: slot.liveType,
+          platform: 'douyin',
+          status: '预告',
+          _startMin: slot.startMin,
+        }
+      }
+
+      return {
         ...override,
-        id: `override-${override.id ?? auto._slotKey}-${todayISO}-${auto._slotKey}`,
-        title: override.title || auto.title,
-        date: override.date || auto.date,
-        // 标签展示统一使用固定时段文案，避免后台手动输入 time 格式不一致
-        time: auto.time,
-        timeRangeDisplay: auto.timeRangeDisplay,
-        liveType: auto.liveType,
-        platform: override.platform || auto.platform,
-        status: override.status || auto.status,
-        _startMin: auto._startMin,
-      });
-    } else {
-      upcomingLives.push(auto);
-    }
-  }
+        id: `override-${override.id ?? slot.slotKey}-${todayISO}-${slot.slotKey}`,
+        title: override.title || slot.title,
+        date: override.date || '今天',
+        time: slot.time,
+        timeRangeDisplay: slot.timeRangeDisplay,
+        liveType: slot.liveType,
+        platform: override.platform || 'douyin',
+        status: override.status || '预告',
+        _startMin: slot.startMin,
+      }
+    })
 
-  // include manual extras
-  // （不再加入 manualExtras，避免出现“周末歌声相伴/新歌首发专场/粉丝点歌夜”等非今天条目）
-
-  // sort by start time for better UX on upcoming-grid
-  upcomingLives.sort((a, b) => {
-    const am = a?._startMin;
-    const bm = b?._startMin;
-    if (am === undefined && bm === undefined) return 0;
-    if (am === undefined) return 1;
-    if (bm === undefined) return -1;
-    return am - bm;
-  });
+  upcomingLives.sort((a, b) => a._startMin - b._startMin)
 
   return (
     <div className="live-page">

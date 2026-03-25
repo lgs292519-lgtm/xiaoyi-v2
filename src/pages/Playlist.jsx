@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { FiSearch, FiMusic } from 'react-icons/fi'
 import songData from '../data/songs.json'
+import dataManager from '../utils/dataManager'
 import './Playlist.css'
 
 const Playlist = () => {
   const [currentGenre, setCurrentGenre] = useState('全部')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchParams] = useSearchParams()
+  const [songsAll, setSongsAll] = useState(songData)
 
   const genreTabs = [
     { label: '全部', value: '全部' },
@@ -37,9 +39,21 @@ const Playlist = () => {
     if (mapped) setCurrentGenre(mapped)
   }, [searchParams])
 
-  const filteredSongs = songData.filter(song => {
+  useEffect(() => {
+    const refreshSongs = () => {
+      const d = dataManager.getData()
+      const list = Array.isArray(d?.songs) && d.songs.length ? d.songs : songData
+      setSongsAll(list)
+    }
+    refreshSongs()
+    window.addEventListener('xiaoyi-data-updated', refreshSongs)
+    return () => window.removeEventListener('xiaoyi-data-updated', refreshSongs)
+  }, [])
+
+  const filteredSongs = songsAll.filter((song) => {
     const matchGenre = currentGenre === '全部' || song.genre === currentGenre
-    const matchSearch = song.title.toLowerCase().includes(searchQuery.toLowerCase())
+    const title = String(song?.title ?? '')
+    const matchSearch = title.toLowerCase().includes(searchQuery.toLowerCase())
     return matchGenre && matchSearch
   })
 
@@ -59,7 +73,7 @@ const Playlist = () => {
             <div className="header-info">
               <h1 className="section-title">我的歌单</h1>
               <p className="header-desc">
-                <FiMusic /> 共收录 {songData.length} 首歌曲 · 4种风格分类
+                <FiMusic /> 共收录 {songsAll.length} 首歌曲 · 4种风格分类
               </p>
             </div>
             <div className="header-search">
@@ -99,7 +113,7 @@ const Playlist = () => {
                 }}
               >
                 {label}
-                <span className="tab-count">{songData.filter(s => genre === '全部' || s.genre === genre).length}</span>
+                <span className="tab-count">{songsAll.filter((s) => genre === '全部' || s.genre === genre).length}</span>
               </button>
               )
             })}
