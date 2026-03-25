@@ -47,6 +47,26 @@ const AdminPanel = ({ onClose }) => {
     setTimeout(() => setSaveStatus(''), 2000);
   };
 
+  // 重置：清空本地配置，恢复到代码里的默认数据
+  const handleResetToDefault = () => {
+    const ok = window.confirm('确定要重置为默认数据吗？这会清空当前浏览器的本地配置。');
+    if (!ok) return;
+
+    dataManager.resetData();
+
+    // 重新读取并更新管理面板状态（避免需要手动刷新页面）
+    const fresh = dataManager.getData();
+    setData(fresh);
+    setSongs(fresh.songs || []);
+    setContact(fresh.contact || {});
+    setUpcomingLives(fresh.upcomingLives || []);
+    setRegularSchedule(fresh.regularSchedule || []);
+    setAboutIntro(fresh.aboutIntro || {});
+    setHeaderText(fresh.headerText || {});
+
+    showSaveStatus('已重置为默认数据');
+  };
+
   // 歌单管理
   const handleAddSong = () => {
     if (!newSong.title.trim()) {
@@ -206,6 +226,12 @@ const AdminPanel = ({ onClose }) => {
         </div>
 
         {saveStatus && <div className="save-status">{saveStatus}</div>}
+
+        <div className="admin-actions">
+          <button type="button" className="btn-export btn-reset" onClick={handleResetToDefault}>
+            重置为默认数据（清空本地配置）
+          </button>
+        </div>
 
         <div className="admin-content">
           <div className="admin-tabs">
