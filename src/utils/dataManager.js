@@ -79,6 +79,11 @@ export const getData = () => {
         merged.aboutIntro.content = defaultData.aboutIntro.content;
       }
 
+      // 按需求：旧邮箱默认不展示，避免“初始化时写过邮箱就一直显示”的问题
+      if (merged?.contact?.email === 'yimaotongdianzi@163.com') {
+        merged.contact.email = '';
+      }
+
       return merged;
     }
     // 首次使用，初始化默认数据
