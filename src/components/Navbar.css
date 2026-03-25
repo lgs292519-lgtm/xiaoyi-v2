@@ -26,6 +26,12 @@
   padding: 0 2rem;
 }
 
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
 .navbar-logo {
   display: flex;
   align-items: center;

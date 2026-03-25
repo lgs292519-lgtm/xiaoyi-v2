@@ -84,14 +84,17 @@ const Navbar = () => {
   return (
     <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
       <div className="navbar-container">
-        <Link to="/" className="navbar-logo">
-          <span className="logo-avatar">
-            {!avatarError ? (
-              <img src={avatarUrl} alt="小意OVO" onError={() => setAvatarError(true)} />
-            ) : (
-              <span className="logo-fallback">意</span>
-            )}
-          </span>
+        <div className="navbar-left">
+          <Link to="/" className="navbar-logo">
+            <span className="logo-avatar">
+              {!avatarError ? (
+                <img src={avatarUrl} alt="小意OVO" onError={() => setAvatarError(true)} />
+              ) : (
+                <span className="logo-fallback">意</span>
+              )}
+            </span>
+            <span className="logo-text">小意OVO</span>
+          </Link>
 
           <span
             className={`live-status ${douyinLive ? '' : 'live-status--unconfigured'}`}
@@ -115,11 +118,7 @@ const Navbar = () => {
                   className="live-status__btn"
                   aria-label="进入直播间"
                   title={liveTitle ? `进入直播间：${liveTitle}` : '进入直播间'}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    window.open(douyinLive, '_blank', 'noopener,noreferrer')
-                  }}
+                  onClick={() => window.open(douyinLive, '_blank', 'noopener,noreferrer')}
                 >
                   进入直播间
                 </button>
@@ -130,9 +129,7 @@ const Navbar = () => {
               </span>
             )}
           </span>
-
-          <span className="logo-text">小意OVO</span>
-        </Link>
+        </div>
 
         <ul className="navbar-menu">
           {navItems.map((item) => (
