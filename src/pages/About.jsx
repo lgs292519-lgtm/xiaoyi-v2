@@ -98,6 +98,22 @@ const About = () => {
         </div>
       </section>
 
+      <section className="update-log-section">
+        <div className="container">
+          <h2 className="subsection-title">更新日志</h2>
+          <div className="update-log-card">
+            <div className="update-log-date">2026-03-25</div>
+            <ul className="update-log-list">
+              <li>新增“棉花糖留言”（共享存储，所有设备可见），后台可清空/删除留言</li>
+              <li>手机端歌单体验优化：分类横滑、歌名两列卡片显示、内容不被底栏遮挡</li>
+              <li>实时开播状态：头像旁显示开播中/未开播，开播中可直接跳转直播间</li>
+              <li>头像自动同步：开播状态接口返回 `avatar_url` 后，关于页头像将自动更新</li>
+              <li>关于页新增录屏回放入口</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section className="thanks-section">
         <div className="container">
           <div className="thanks-content">
