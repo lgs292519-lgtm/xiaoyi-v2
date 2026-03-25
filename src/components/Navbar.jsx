@@ -118,7 +118,10 @@ const Navbar = () => {
                   className="live-status__btn"
                   aria-label="进入直播间"
                   title={liveTitle ? `进入直播间：${liveTitle}` : '进入直播间'}
-                  onClick={() => window.open(douyinLive, '_blank', 'noopener,noreferrer')}
+                  onClick={() => {
+                    // 直接跳转，避免移动端浏览器对 window.open 的拦截
+                    window.location.href = douyinLive
+                  }}
                 >
                   进入直播间
                 </button>
