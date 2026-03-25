@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiX, FiPlus, FiTrash2, FiSave, FiUpload, FiMusic, FiMail, FiRadio, FiCalendar, FiClock, FiUser, FiInfo, FiMessageSquare } from 'react-icons/fi';
+import { FiX, FiPlus, FiTrash2, FiSave, FiUpload, FiMusic, FiMail, FiRadio, FiCalendar, FiClock, FiUser, FiInfo, FiMessageSquare, FiHeart } from 'react-icons/fi';
 import dataManager from '../utils/dataManager';
 import './AdminPanel.css';
 
@@ -18,6 +18,8 @@ const AdminPanel = ({ onClose }) => {
   const [newLive, setNewLive] = useState({ title: '', date: '', time: '', platform: 'douyin' });
   const [newSchedule, setNewSchedule] = useState({ day: '', time: '', activity: '' });
   const [cottonMessages, setCottonMessages] = useState([]);
+  const [aboutFixedTags, setAboutFixedTags] = useState([]);
+  const [aboutExtraTags, setAboutExtraTags] = useState([]);
 
   useEffect(() => {
     const loadedData = dataManager.getData();
@@ -31,6 +33,12 @@ const AdminPanel = ({ onClose }) => {
     // 棉花糖留言从共享接口读取（所有设备可见）
     dataManager.getCottonCandyMessages().then((list) => {
       setCottonMessages(list || []);
+    });
+
+    // 关于标签（共享接口：固定标签可点赞、备用标签可被管理员加入固定）
+    dataManager.getAboutTags().then(({ fixed, extras } = {}) => {
+      setAboutFixedTags(Array.isArray(fixed) ? fixed : []);
+      setAboutExtraTags(Array.isArray(extras) ? extras : []);
     });
   }, []);
 
@@ -174,8 +182,18 @@ const AdminPanel = ({ onClose }) => {
     { id: 'lives', icon: <FiRadio />, label: '直播预告' },
     { id: 'schedule', icon: <FiCalendar />, label: '固定安排' },
     { id: 'cotton', icon: <FiMessageSquare />, label: '棉花糖留言' },
+    { id: 'about-tags', icon: <FiHeart />, label: '关于标签' },
     { id: 'about', icon: <FiInfo />, label: '关于页面' },
   ];
+
+  const handlePromoteExtraTag = async (extraId) => {
+    const ok = await dataManager.promoteAboutExtraTag(extraId);
+    if (!ok) return;
+    const res = await dataManager.getAboutTags();
+    setAboutFixedTags(res?.fixed || []);
+    setAboutExtraTags(res?.extras || []);
+    showSaveStatus('已加入固定标签');
+  };
 
   return (
     <div className="admin-overlay" onClick={onClose}>
@@ -548,6 +566,55 @@ const AdminPanel = ({ onClose }) => {
                       </div>
                     ))
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* 关于标签互动 */}
+            {activeTab === 'about-tags' && (
+              <div className="tab-content">
+                <h3>关于标签互动</h3>
+                <p className="section-hint">固定标签：粉丝可点赞；备用标签：粉丝提名，管理员可加入固定。</p>
+
+                <div className="divider"></div>
+
+                <div className="tag-manage-block">
+                  <h4>固定标签</h4>
+                  <div className="tag-fixed-list">
+                    {(aboutFixedTags || []).length === 0 ? (
+                      <p style={{ color: 'rgba(255,255,255,0.55)' }}>暂无固定标签</p>
+                    ) : (
+                      (aboutFixedTags || []).map((t) => (
+                        <div key={t.id} className="tag-row">
+                          <span className="tag-row-name">{t.name}</span>
+                          <span className="tag-row-count">{t.likeCount ?? 0} 赞</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="divider"></div>
+
+                <div className="tag-manage-block">
+                  <h4>备用标签</h4>
+                  <div className="tag-fixed-list">
+                    {(aboutExtraTags || []).length === 0 ? (
+                      <p style={{ color: 'rgba(255,255,255,0.55)' }}>暂无备用标签</p>
+                    ) : (
+                      (aboutExtraTags || []).map((t) => (
+                        <div key={t.id} className="tag-row tag-row--extra">
+                          <div className="tag-row-left">
+                            <span className="tag-row-name">{t.name}</span>
+                            <span className="tag-row-count">{t.suggestCount ?? 0} 提名</span>
+                          </div>
+                          <button className="btn-add btn-add--small" onClick={() => handlePromoteExtraTag(t.id)}>
+                            <FiPlus /> 加入固定
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               </div>
             )}

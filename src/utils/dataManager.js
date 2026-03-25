@@ -30,11 +30,7 @@ const defaultData = {
   aboutIntro: {
     title: '关于小意OVO',
     content: [
-      '大家好，我是小意OVO。一个热爱音乐、热爱生活的普通人。',
-      '从小就喜欢听歌、唱歌，音乐是我生活中不可或缺的一部分。',
-      '希望用我的歌声，能够温暖每一个聆听者的心。',
-      '这里是我的个人主页，收录了我喜欢的歌曲，也分享着我的音乐故事。',
-      '如果某首歌刚好触动你的心弦，那就是我最开心的时刻。'
+      '对的对的，别怕，天塌了我是顶天立地的人。'
     ]
   },
   profileInfo: {
@@ -219,6 +215,54 @@ export const clearCottonCandyMessages = async () => {
   return data?.ok === true
 }
 
+// ===== 关于标签（固定标签 + 备用标签）=====
+// 说明：
+// - 粉丝可对“固定标签”点赞
+// - 粉丝可提交“备用标签”提名
+// - 管理员可把“备用标签”提升为“固定标签”
+export const getAboutTags = async () => {
+  const res = await fetch(`${API_BASE}/api/about-tags`, { method: 'GET' })
+  if (!res.ok) return { fixed: [], extras: [] }
+  const data = await res.json().catch(() => ({}))
+  return {
+    fixed: data.fixed || [],
+    extras: data.extras || [],
+  }
+}
+
+export const voteAboutTag = async (tagId) => {
+  const res = await fetch(`${API_BASE}/api/about-tags/vote`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ tagId }),
+  })
+  if (!res.ok) return null
+  const data = await res.json().catch(() => ({}))
+  return data?.tag || null
+}
+
+export const suggestAboutTag = async (name) => {
+  const res = await fetch(`${API_BASE}/api/about-tags`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ name }),
+  })
+  if (!res.ok) return null
+  const data = await res.json().catch(() => ({}))
+  return data?.extra || null
+}
+
+export const promoteAboutExtraTag = async (extraId) => {
+  const res = await fetch(`${API_BASE}/api/about-tags/promote`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ extraId }),
+  })
+  if (!res.ok) return false
+  const data = await res.json().catch(() => ({}))
+  return data?.ok === true
+}
+
 // 重置为默认数据
 export const resetData = () => {
   saveData(defaultData);
@@ -243,5 +287,9 @@ export default {
   addCottonCandyMessage,
   deleteCottonCandyMessage,
   clearCottonCandyMessages,
+  getAboutTags,
+  voteAboutTag,
+  suggestAboutTag,
+  promoteAboutExtraTag,
   resetData
 };

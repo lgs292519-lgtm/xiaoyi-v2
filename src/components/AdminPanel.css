@@ -420,6 +420,55 @@
   margin-top: 1rem;
 }
 
+/* ===== 关于标签管理 ===== */
+.tag-manage-block {
+  margin-top: 1.25rem;
+}
+
+.tag-fixed-list {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tag-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.tag-row--extra {
+  border-color: rgba(224, 192, 151, 0.25);
+}
+
+.tag-row-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.tag-row-name {
+  color: #fff;
+  font-weight: 800;
+}
+
+.tag-row-count {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.85rem;
+}
+
+.btn-add--small {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8rem;
+  border-radius: 8px;
+}
+
 .live-item,
 .schedule-item {
   display: flex;

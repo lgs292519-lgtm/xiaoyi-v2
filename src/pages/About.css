@@ -99,6 +99,118 @@
   margin-bottom: 0;
 }
 
+/* ===== 标签互动 ===== */
+.tag-section {
+  padding: 3rem 0;
+}
+
+.tag-section .subsection-title {
+  text-align: center;
+}
+
+.tags-list {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.tag-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.65rem 1rem;
+  border-radius: 999px;
+  background: rgba(26, 26, 36, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 125px;
+}
+
+.tag-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(224, 192, 151, 0.5);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  background: rgba(26, 26, 36, 0.65);
+}
+
+.tag-item:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.tag-item--voted {
+  border-color: rgba(224, 192, 151, 0.6);
+}
+
+.tag-name {
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.tag-like {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-accent-gold);
+  font-weight: 800;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.tag-like-icon {
+  color: var(--color-accent-gold);
+}
+
+.tag-suggest {
+  margin-top: 1.75rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.tag-suggest input {
+  flex: 1 1 260px;
+  max-width: 520px;
+  padding: 0.85rem 1rem;
+  background: rgba(26, 26, 36, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: #fff;
+}
+
+.tag-suggest input:focus {
+  outline: none;
+  border-color: rgba(224, 192, 151, 0.65);
+}
+
+.tag-suggest-btn {
+  padding: 0.85rem 1.2rem;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-weight: 800;
+  color: #1a1a2e;
+  background: linear-gradient(135deg, #e0c097, #d4a574);
+  transition: all 0.2s ease;
+}
+
+.tag-suggest-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(224, 192, 151, 0.18);
+}
+
+.tag-hint {
+  text-align: center;
+  margin-top: 0.9rem;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
 /* ===== 联系 ===== */
 .contact-section {
   padding: 3rem 0;
@@ -304,6 +416,19 @@
 
   .intro-card {
     padding: 1.5rem 1.25rem;
+  }
+
+  .tag-section {
+    padding: 2.25rem 0;
+  }
+
+  .tag-item {
+    min-width: auto;
+    padding: 0.6rem 0.85rem;
+  }
+
+  .tag-suggest input {
+    max-width: none;
   }
 
   .thanks-content h2 {

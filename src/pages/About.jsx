@@ -4,14 +4,56 @@ import { FaTiktok } from 'react-icons/fa';
 import dataManager from '../utils/dataManager';
 import './About.css';
 
+const DEFAULT_ABOUT_TAGS = [
+  '社牛',
+  '大胆',
+  '可爱',
+  '害羞',
+  '精灵古怪',
+  '天籁之音',
+  '学歌超快',
+  '神秘',
+];
+
+const ABOUT_VOTED_KEY = 'xiaoyi_about_tag_votes';
+
 const About = () => {
   const [data, setData] = useState(null);
+  const [fixedTags, setFixedTags] = useState([]);
+  const [votedMap, setVotedMap] = useState({});
+  const [tagInput, setTagInput] = useState('');
+  const [tagHint, setTagHint] = useState('');
 
   useEffect(() => {
     const refresh = () => setData(dataManager.getData());
     refresh();
     window.addEventListener('xiaoyi-avatar-updated', refresh);
     return () => window.removeEventListener('xiaoyi-avatar-updated', refresh);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(ABOUT_VOTED_KEY);
+      setVotedMap(raw ? JSON.parse(raw) : {});
+    } catch {
+      setVotedMap({});
+    }
+
+    // 获取固定标签 + 备用标签数据（固定标签会自动种子化）
+    dataManager.getAboutTags().then(({ fixed } = {}) => {
+      const list = Array.isArray(fixed) ? fixed : [];
+      if (list.length) {
+        setFixedTags(list);
+      } else {
+        setFixedTags(
+          DEFAULT_ABOUT_TAGS.map((name, idx) => ({
+            id: `default-${idx}`,
+            name,
+            likeCount: 0,
+          }))
+        );
+      }
+    });
   }, []);
 
   if (!data) {
@@ -62,6 +104,83 @@ const About = () => {
               <p key={index}>{paragraph}</p>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* 标签互动 */}
+      <section className="tag-section">
+        <div className="container">
+          <h2 className="subsection-title">个性标签</h2>
+          <div className="tags-list">
+            {fixedTags.map((tag) => {
+              const isVoted = Boolean(votedMap[tag.id]);
+              return (
+                <button
+                  type="button"
+                  key={tag.id}
+                  className={`tag-item ${isVoted ? 'tag-item--voted' : ''}`}
+                  onClick={async () => {
+                    if (isVoted) return;
+                    if (String(tag.id).startsWith('default-')) {
+                      setTagHint('当前标签数据未连接，稍后再试。');
+                      setTimeout(() => setTagHint(''), 2500);
+                      return;
+                    }
+                    // 前端限流：同一设备/浏览器对同一标签只点赞一次
+                    const next = { ...votedMap, [tag.id]: true };
+                    setVotedMap(next);
+                    localStorage.setItem(ABOUT_VOTED_KEY, JSON.stringify(next));
+
+                    const updated = await dataManager.voteAboutTag(tag.id);
+                    if (updated?.likeCount !== undefined) {
+                      setFixedTags((prev) =>
+                        prev.map((t) => (t.id === tag.id ? { ...t, likeCount: updated.likeCount } : t))
+                      );
+                    } else {
+                      // 兜底：如果接口失败就不更新数字
+                    }
+                  }}
+                  aria-label={`点赞 ${tag.name}`}
+                  disabled={isVoted}
+                >
+                  <span className="tag-name">{tag.name}</span>
+                  <span className="tag-like">
+                    <FiHeart className="tag-like-icon" />
+                    {tag.likeCount ?? 0}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="tag-suggest">
+            <input
+              type="text"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              placeholder="给她的备用标签提名（管理员可加入固定标签）"
+              maxLength={20}
+            />
+            <button
+              type="button"
+              className="tag-suggest-btn"
+              onClick={async () => {
+                const name = tagInput.trim();
+                if (!name) return;
+                const extra = await dataManager.suggestAboutTag(name);
+                if (extra) {
+                  setTagHint('已提交备用标签，期待管理员采纳。');
+                  setTagInput('');
+                } else {
+                  setTagHint('提交失败，请稍后重试。');
+                }
+                setTimeout(() => setTagHint(''), 2500);
+              }}
+            >
+              提交备用标签
+            </button>
+          </div>
+          {tagHint ? <p className="tag-hint">{tagHint}</p> : null}
         </div>
       </section>
 
