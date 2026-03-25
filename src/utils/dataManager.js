@@ -18,12 +18,12 @@ const defaultData = {
   regularSchedule: [
     // 每天三个固定时段：13-15 / 16-18 / 20-21（用于 Live 页随机掉落）
     // 需求：固定时段的“默认值”来自这里；之后可在管理界面替换/增删
-    { id: 1, day: '每天', time: '13:00 - 15:00', activity: '周末歌声相伴' },
-    { id: 2, day: '每天', time: '16:00 - 18:00', activity: '新歌首发专场' },
+    { id: 1, day: '每天', time: '13:00 - 15:00', activity: '小意出没，歌声相伴' },
+    { id: 2, day: '每天', time: '16:00 - 18:00', activity: '小意出没，歌声相伴' },
     // 20-21 为随机池（管理端可继续增删活动名）
-    { id: 3, day: '每天', time: '20:00 - 21:00', activity: '粉丝点歌夜' },
-    { id: 4, day: '每天', time: '20:00 - 21:00', activity: '星光点歌夜' },
-    { id: 5, day: '每天', time: '20:00 - 21:00', activity: '月色合奏' },
+    { id: 3, day: '每天', time: '20:00 - 21:00', activity: '小意出没，歌声相伴' },
+    { id: 4, day: '每天', time: '20:00 - 21:00', activity: '小意出没，歌声相伴' },
+    { id: 5, day: '每天', time: '20:00 - 21:00', activity: '小意出没，歌声相伴' },
   ],
   aboutIntro: {
     title: '关于小意OVO',
