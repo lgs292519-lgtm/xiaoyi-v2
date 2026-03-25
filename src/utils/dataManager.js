@@ -1,9 +1,12 @@
 // 数据管理模块 - 使用 localStorage 持久化数据
+import songData from '../data/songs.json'
 
 const STORAGE_KEY = 'xiaoyi_admin_data';
 
 // 默认数据
 const defaultData = {
+  // 歌单数据：用于“重置为默认数据”恢复，以及管理端编辑后落盘
+  songs: Array.isArray(songData) ? songData : [],
   contact: {
     douyinHome: 'https://www.douyin.com/user/MS4wLjABAAAApLv52fKEfQJaaUwamy-AXFsBwWFgARL7j9_bsv42RHp2ULyl7FokZXbd3oxb_Ewj',
     douyinLive: 'https://live.douyin.com/49330409995',
