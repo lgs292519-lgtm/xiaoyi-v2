@@ -28,9 +28,19 @@ function App() {
       setAdminData(dataManager.getData())
     })
 
+    // 跨设备同步：定时轮询服务端，确保其它设备不用刷新也能看到更新
+    const timer = window.setInterval(() => {
+      dataManager.syncAdminDataFromServer?.().then(() => {
+        setAdminData(dataManager.getData())
+      })
+    }, 60_000)
+
     const onUpdated = () => setAdminData(dataManager.getData())
     window.addEventListener('xiaoyi-data-updated', onUpdated)
-    return () => window.removeEventListener('xiaoyi-data-updated', onUpdated)
+    return () => {
+      window.removeEventListener('xiaoyi-data-updated', onUpdated)
+      window.clearInterval(timer)
+    }
   }, []);
 
   const startMusic = () => {
