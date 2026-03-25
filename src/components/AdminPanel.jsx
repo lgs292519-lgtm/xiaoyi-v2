@@ -28,7 +28,10 @@ const AdminPanel = ({ onClose }) => {
     setRegularSchedule(loadedData.regularSchedule || []);
     setAboutIntro(loadedData.aboutIntro || {});
     setHeaderText(loadedData.headerText || {});
-    setCottonMessages(loadedData?.cottonCandy?.messages || []);
+    // 棉花糖留言从共享接口读取（所有设备可见）
+    dataManager.getCottonCandyMessages().then((list) => {
+      setCottonMessages(list || []);
+    });
   }, []);
 
   const showSaveStatus = (message, isSuccess = true) => {
@@ -148,15 +151,18 @@ const AdminPanel = ({ onClose }) => {
     showSaveStatus('欢迎页文字已保存');
   };
 
-  const handleDeleteCottonMessage = (id) => {
-    dataManager.deleteCottonCandyMessage(id);
-    setCottonMessages(prev => (prev || []).filter(m => m.id !== id));
+  const handleDeleteCottonMessage = async (id) => {
+    const ok = await dataManager.deleteCottonCandyMessage(id);
+    if (!ok) return;
+    const list = await dataManager.getCottonCandyMessages();
+    setCottonMessages(list || []);
     showSaveStatus('棉花糖留言已删除');
   };
 
-  const handleClearCottonMessages = () => {
+  const handleClearCottonMessages = async () => {
     if (!window.confirm('确定要清空所有棉花糖留言吗？')) return;
-    dataManager.clearCottonCandyMessages();
+    const ok = await dataManager.clearCottonCandyMessages();
+    if (!ok) return;
     setCottonMessages([]);
     showSaveStatus('棉花糖留言已清空');
   };
@@ -496,9 +502,9 @@ const AdminPanel = ({ onClose }) => {
 
             {/* 棉花糖留言管理 */}
             {activeTab === 'cotton' && (
-              <div className="tab-content">
+                <div className="tab-content">
                 <h3>棉花糖留言</h3>
-                <p className="section-hint">留言只会保存在当前浏览器的 localStorage 中（与其他设备不共享）。</p>
+                  <p className="section-hint">留言已改为共享存储：所有设备可见。</p>
 
                 <div className="form-row">
                   <button className="btn-export" onClick={handleClearCottonMessages}>

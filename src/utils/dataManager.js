@@ -169,36 +169,51 @@ export const updateHeaderText = (text) => {
 };
 
 // ===== 棉花糖留言 =====
-export const addCottonCandyMessage = ({ nickname, content }) => {
-  const data = getData();
-  const safeNick = (nickname || '匿名').toString().trim().slice(0, 20);
-  const safeContent = (content || '').toString().trim().slice(0, 800);
-  if (!safeContent) return false;
+// 所有设备共享：通过 Cloudflare Pages Functions 接口读写
+// GET    /api/cotton-candy
+// POST   /api/cotton-candy          { nickname, content }
+// DELETE /api/cotton-candy (json)  { id }
+// POST   /api/cotton-candy/clear
+const API_BASE = '' // 同域调用（/pages.dev / 自定义域都适配）
 
-  data.cottonCandy = data.cottonCandy || { messages: [] };
-  const newMsg = {
-    id: Date.now(),
-    nickname: safeNick,
-    content: safeContent,
-    createdAt: new Date().toISOString(),
-  };
-  data.cottonCandy.messages = [...(data.cottonCandy.messages || []), newMsg];
-  return saveData(data);
-};
+export const getCottonCandyMessages = async () => {
+  const res = await fetch(`${API_BASE}/api/cotton-candy`, { method: 'GET' })
+  if (!res.ok) return []
+  const data = await res.json().catch(() => ({}))
+  return data.messages || []
+}
 
-export const deleteCottonCandyMessage = (id) => {
-  const data = getData();
-  if (!data.cottonCandy) data.cottonCandy = { messages: [] };
-  data.cottonCandy.messages = (data.cottonCandy.messages || []).filter(m => m.id !== id);
-  return saveData(data);
-};
+export const addCottonCandyMessage = async ({ nickname, content }) => {
+  const res = await fetch(`${API_BASE}/api/cotton-candy`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ nickname, content }),
+  })
+  if (!res.ok) return false
+  const data = await res.json().catch(() => ({}))
+  return data?.ok === true
+}
 
-export const clearCottonCandyMessages = () => {
-  const data = getData();
-  if (!data.cottonCandy) data.cottonCandy = { messages: [] };
-  data.cottonCandy.messages = [];
-  return saveData(data);
-};
+export const deleteCottonCandyMessage = async (id) => {
+  const res = await fetch(`${API_BASE}/api/cotton-candy`, {
+    method: 'DELETE',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ id }),
+  })
+  if (!res.ok) return false
+  const data = await res.json().catch(() => ({}))
+  return data?.ok === true
+}
+
+export const clearCottonCandyMessages = async () => {
+  const res = await fetch(`${API_BASE}/api/cotton-candy/clear`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+  })
+  if (!res.ok) return false
+  const data = await res.json().catch(() => ({}))
+  return data?.ok === true
+}
 
 // 重置为默认数据
 export const resetData = () => {
@@ -220,6 +235,7 @@ export default {
   updateAboutIntro,
   updateProfileInfo,
   updateHeaderText,
+  getCottonCandyMessages,
   addCottonCandyMessage,
   deleteCottonCandyMessage,
   clearCottonCandyMessages,

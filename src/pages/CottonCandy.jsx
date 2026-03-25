@@ -9,8 +9,14 @@ const CottonCandy = () => {
   const [messages, setMessages] = useState([])
 
   useEffect(() => {
-    const data = dataManager.getData()
-    setMessages(data?.cottonCandy?.messages || [])
+    let alive = true
+    dataManager.getCottonCandyMessages().then((list) => {
+      if (!alive) return
+      setMessages(list || [])
+    })
+    return () => {
+      alive = false
+    }
   }, [])
 
   const sortedMessages = useMemo(() => {
@@ -18,21 +24,21 @@ const CottonCandy = () => {
   }, [messages])
 
   const refresh = () => {
-    const data = dataManager.getData()
-    setMessages(data?.cottonCandy?.messages || [])
+    dataManager.getCottonCandyMessages().then((list) => setMessages(list || []))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const ok = dataManager.addCottonCandyMessage({ nickname, content })
+    const ok = await dataManager.addCottonCandyMessage({ nickname, content })
     if (!ok) return
     setNickname('')
     setContent('')
     refresh()
   }
 
-  const handleDelete = (id) => {
-    dataManager.deleteCottonCandyMessage(id)
+  const handleDelete = async (id) => {
+    const ok = await dataManager.deleteCottonCandyMessage(id)
+    if (!ok) return
     refresh()
   }
 
