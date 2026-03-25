@@ -36,12 +36,12 @@ export async function onRequest(context) {
   const method = request.method.toUpperCase()
 
   if (method === 'GET') {
-    const row = await db.prepare(`SELECT json FROM xiaoyi_admin_data WHERE id = 1`).first()
-    if (!row) return json({ data: null })
+    const row = await db.prepare(`SELECT json, updatedAt FROM xiaoyi_admin_data WHERE id = 1`).first()
+    if (!row) return json({ data: null, updatedAt: null })
     try {
-      return json({ data: JSON.parse(row.json) })
+      return json({ data: JSON.parse(row.json), updatedAt: row.updatedAt || null })
     } catch {
-      return json({ data: null })
+      return json({ data: null, updatedAt: row.updatedAt || null })
     }
   }
 

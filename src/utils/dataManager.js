@@ -104,18 +104,21 @@ export const getData = () => {
 export const saveData = (data) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    // 用于避免服务器旧数据覆盖你在本地刚删除/修改的数据
+    localStorage.setItem(ADMIN_LAST_LOCAL_SAVE_AT, String(Date.now()))
+    localStorage.setItem(ADMIN_SYNC_NEEDED, '1')
     // 通知同一页面其它模块（如 Live 页）立即刷新
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('xiaoyi-data-updated'))
     }
-    // 跨设备同步：异步写入服务端（失败不影响本地体验）
-    if (typeof fetch === 'function') {
-      fetch(`${API_BASE}/api/admin-data`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json; charset=utf-8' },
-        body: JSON.stringify({ data }),
-      }).catch(() => {})
-    }
+
+    // 跨设备同步：异步写入服务端（失败不影响本地体验，但会在下一次轮询重试）
+    persistAdminDataToServer(data)
+      .then((ok) => {
+        if (ok) localStorage.setItem(ADMIN_SYNC_NEEDED, '0')
+      })
+      .catch(() => {})
+
     return true;
   } catch (error) {
     console.error('保存数据失败:', error);
@@ -127,11 +130,27 @@ export const saveData = (data) => {
 export const syncAdminDataFromServer = async () => {
   if (typeof fetch !== 'function') return false
   try {
+    // 若本地标记“需要同步”，则先尝试把本地数据 POST 到服务端（用于最终跨设备一致）
+    const need = localStorage.getItem(ADMIN_SYNC_NEEDED)
+    if (need === '1') {
+      // 不影响当前拉取/覆盖逻辑
+      persistAdminDataToServer(getData()).then((ok) => {
+        if (ok) localStorage.setItem(ADMIN_SYNC_NEEDED, '0')
+      }).catch(() => {})
+    }
+
     const res = await fetch(`${API_BASE}/api/admin-data`, { method: 'GET' })
     if (!res.ok) return false
     const payload = await res.json().catch(() => ({}))
     const serverData = payload?.data
+    const serverUpdatedAt = payload?.updatedAt ? Date.parse(payload.updatedAt) : null
     if (!serverData) return false
+
+    const localTs = getNum(localStorage.getItem(ADMIN_LAST_LOCAL_SAVE_AT), 0)
+    // 如果服务器数据比本地更旧，就不覆盖本地刚刚删除/修改的内容
+    if (serverUpdatedAt !== null && localTs > 0 && serverUpdatedAt < localTs) {
+      return false
+    }
 
     // 只写本地，不触发 saveData 的 POST，避免写回死循环
     localStorage.setItem(STORAGE_KEY, JSON.stringify(serverData))
@@ -235,6 +254,28 @@ export const updateHeaderText = (text) => {
 // DELETE /api/cotton-candy (json)  { id }
 // POST   /api/cotton-candy/clear
 const API_BASE = '' // 同域调用（/pages.dev / 自定义域都适配）
+
+const ADMIN_LAST_LOCAL_SAVE_AT = 'xiaoyi_admin_last_local_save_at'
+const ADMIN_SYNC_NEEDED = 'xiaoyi_admin_sync_needed'
+
+const getNum = (v, fallback = 0) => {
+  const n = Number(v)
+  return Number.isFinite(n) ? n : fallback
+}
+
+const persistAdminDataToServer = async (data) => {
+  if (typeof fetch !== 'function') return false
+  try {
+    const res = await fetch(`${API_BASE}/api/admin-data`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json; charset=utf-8' },
+      body: JSON.stringify({ data }),
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
 
 const COTTON_USER_KEY_STORAGE = 'xiaoyi_cotton_user_key'
 const getCottonUserKey = () => {
