@@ -86,18 +86,43 @@ const Live = () => {
   const [data, setData] = useState(null);
   const [nowTick, setNowTick] = useState(Date.now());
 
-  const loadData = () => {
+  const loadLocalData = () => {
     const adminData = dataManager.getData();
     setData(adminData);
   };
 
+  // 跨设备同步：从服务器端读取固定安排 & 直播预告
+  const refreshServerAdmin = async () => {
+    try {
+      const [serverUpcomingLives, serverRegularSchedule] = await Promise.all([
+        dataManager.getUpcomingLivesFromServer(),
+        dataManager.getRegularScheduleFromServer(),
+      ])
+
+      setData((prev) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          upcomingLives: serverUpcomingLives ?? prev.upcomingLives,
+          regularSchedule: serverRegularSchedule ?? prev.regularSchedule,
+        }
+      })
+    } catch {
+      // 接口失败则保持当前展示
+    }
+  }
+
   useEffect(() => {
-    loadData();
+    loadLocalData();
+    refreshServerAdmin();
   }, []);
 
   // 当管理界面更新 localStorage 后，Live 页需要同步刷新
   useEffect(() => {
-    const onUpdate = () => loadData();
+    const onUpdate = () => {
+      loadLocalData()
+      refreshServerAdmin()
+    }
     window.addEventListener('xiaoyi-data-updated', onUpdate);
     // 兼容多 Tab 场景
     window.addEventListener('storage', onUpdate);
@@ -108,7 +133,10 @@ const Live = () => {
   }, []);
 
   useEffect(() => {
-    const t = setInterval(() => setNowTick(Date.now()), 30_000);
+    const t = setInterval(() => {
+      setNowTick(Date.now())
+      refreshServerAdmin()
+    }, 30_000)
     return () => clearInterval(t);
   }, []);
 

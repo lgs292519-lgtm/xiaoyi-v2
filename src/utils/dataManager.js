@@ -126,7 +126,14 @@ export const updateContact = (contact) => {
 export const updateUpcomingLives = (lives) => {
   const data = getData();
   data.upcomingLives = lives;
-  return saveData(data);
+  const ok = saveData(data);
+  // 同步到服务器端，保证跨设备一致性
+  try {
+    void syncUpcomingLivesToServer(lives);
+  } catch {
+    // ignore
+  }
+  return ok;
 };
 
 // 添加直播预告
@@ -138,21 +145,40 @@ export const addUpcomingLive = (live) => {
     status: live.status || '预告'
   };
   data.upcomingLives.push(newLive);
-  return saveData(data);
+  const ok = saveData(data);
+  try {
+    void syncUpcomingLivesToServer(data.upcomingLives);
+  } catch {
+    // ignore
+  }
+  return ok;
 };
 
 // 删除直播预告
 export const deleteUpcomingLive = (id) => {
   const data = getData();
   data.upcomingLives = data.upcomingLives.filter(live => live.id !== id);
-  return saveData(data);
+  const ok = saveData(data);
+  try {
+    void syncUpcomingLivesToServer(data.upcomingLives);
+  } catch {
+    // ignore
+  }
+  return ok;
 };
 
 // 更新固定直播安排
 export const updateRegularSchedule = (schedule) => {
   const data = getData();
   data.regularSchedule = schedule;
-  return saveData(data);
+  const ok = saveData(data);
+  // 同步到服务器端，保证跨设备一致性
+  try {
+    void syncRegularScheduleToServer(schedule);
+  } catch {
+    // ignore
+  }
+  return ok;
 };
 
 // 添加固定直播安排
@@ -163,14 +189,26 @@ export const addRegularSchedule = (item) => {
     ...item
   };
   data.regularSchedule.push(newItem);
-  return saveData(data);
+  const ok = saveData(data);
+  try {
+    void syncRegularScheduleToServer(data.regularSchedule);
+  } catch {
+    // ignore
+  }
+  return ok;
 };
 
 // 删除固定直播安排
 export const deleteRegularSchedule = (id) => {
   const data = getData();
   data.regularSchedule = data.regularSchedule.filter(item => item.id !== id);
-  return saveData(data);
+  const ok = saveData(data);
+  try {
+    void syncRegularScheduleToServer(data.regularSchedule);
+  } catch {
+    // ignore
+  }
+  return ok;
 };
 
 // 更新头像
@@ -201,13 +239,59 @@ export const updateHeaderText = (text) => {
   return saveData(data);
 };
 
+// ===== 管理端（跨设备）持久化：固定安排 / 直播预告 =====
+// 说明：因为当前“管理数据”原本只存 localStorage，跨设备不会同步。
+// 这里新增服务端接口，把 upcomingLives / regularSchedule 同步到 D1。
+
+const API_BASE = '' // 同域调用（/pages.dev / 自定义域都适配）
+
+const getApiJson = async (url, options) => {
+  const res = await fetch(url, options)
+  if (!res.ok) return null
+  return res.json().catch(() => ({}))
+}
+
+const syncRegularScheduleToServer = async (schedule) => {
+  if (!Array.isArray(schedule)) return false
+  const payload = { regularSchedule: schedule }
+  const res = await getApiJson(`${API_BASE}/api/xiaoyi-admin/regular-schedule`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify(payload),
+  })
+  return res?.ok === true
+}
+
+const syncUpcomingLivesToServer = async (lives) => {
+  if (!Array.isArray(lives)) return false
+  const payload = { upcomingLives: lives }
+  const res = await getApiJson(`${API_BASE}/api/xiaoyi-admin/upcoming-lives`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify(payload),
+  })
+  return res?.ok === true
+}
+
+export const getRegularScheduleFromServer = async () => {
+  const res = await getApiJson(`${API_BASE}/api/xiaoyi-admin/regular-schedule`, { method: 'GET' })
+  if (!res) return []
+  return Array.isArray(res?.regularSchedule) ? res.regularSchedule : []
+}
+
+export const getUpcomingLivesFromServer = async () => {
+  const res = await getApiJson(`${API_BASE}/api/xiaoyi-admin/upcoming-lives`, { method: 'GET' })
+  if (!res) return []
+  return Array.isArray(res?.upcomingLives) ? res.upcomingLives : []
+}
+
 // ===== 棉花糖留言 =====
 // 所有设备共享：通过 Cloudflare Pages Functions 接口读写
 // GET    /api/cotton-candy
 // POST   /api/cotton-candy          { nickname, content }
 // DELETE /api/cotton-candy (json)  { id }
 // POST   /api/cotton-candy/clear
-const API_BASE = '' // 同域调用（/pages.dev / 自定义域都适配）
+// API_BASE 已在上面定义
 
 const COTTON_USER_KEY_STORAGE = 'xiaoyi_cotton_user_key'
 const getCottonUserKey = () => {
@@ -340,6 +424,8 @@ export default {
   updateRegularSchedule,
   addRegularSchedule,
   deleteRegularSchedule,
+  getRegularScheduleFromServer,
+  getUpcomingLivesFromServer,
   updateAvatar,
   updateAboutIntro,
   updateProfileInfo,
