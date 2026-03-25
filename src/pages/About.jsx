@@ -77,6 +77,17 @@ const About = () => {
     ? aboutIntro.content 
     : [];
 
+  // 优先使用后台“关于页面设置”的个人签名；没有才回退到 profileInfo.tagline
+  const signatureRaw = (aboutIntro?.tagline && String(aboutIntro.tagline).trim())
+    ? String(aboutIntro.tagline).trim()
+    : (profileInfo?.tagline && String(profileInfo.tagline).trim())
+      ? String(profileInfo.tagline).trim()
+      : '对的对的，别怕，天塌了我是顶天立地的人。';
+
+  const signatureDisplay = signatureRaw.includes('“') || signatureRaw.includes('”')
+    ? signatureRaw
+    : `“${signatureRaw}”`;
+
   return (
     <div className="about-page">
       <section className="about-header">
@@ -87,7 +98,7 @@ const About = () => {
             </div>
             <div className="profile-info">
               <h1>小意OVO</h1>
-              <p className="profile-tagline">{profileInfo.tagline || aboutIntro.tagline || '用歌声治愈每一颗心灵'}</p>
+              <p className="profile-tagline">{signatureDisplay}</p>
               <div className="profile-stats">
                 <div className="stat-item">
                   <span className="stat-number">{profileInfo.stats?.songs || '140+'}</span>
@@ -119,6 +130,7 @@ const About = () => {
         <div className="container">
           <h2 className="subsection-title">个性标签</h2>
           <div className="tags-list">
+            <div className="tags-divider-title">正式标签（可点赞）</div>
             {fixedTags.map((tag) => {
               const isVoted = Boolean(votedMap[tag.id]);
               const handleToggleLike = async (e) => {

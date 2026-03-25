@@ -29,6 +29,8 @@ const defaultData = {
   ],
   aboutIntro: {
     title: '关于小意OVO',
+    // 默认个人签名：后台可在管理界面“个人签名”维护
+    tagline: '对的对的，别怕，天塌了我是顶天立地的人。',
     content: [
       '大家好，我是小意OVO。一个热爱音乐、热爱生活的普通人。',
       '从小就喜欢听歌、唱歌，音乐是我生活中不可或缺的一部分。',
@@ -77,6 +79,11 @@ export const getData = () => {
         String(merged.aboutIntro.content[0]).includes('天塌了我是顶天立地的人')
       ) {
         merged.aboutIntro.content = defaultData.aboutIntro.content;
+      }
+
+      // 确保关于页“个人签名”字段存在（兼容旧数据）
+      if (!merged?.aboutIntro?.tagline || !String(merged.aboutIntro.tagline).trim()) {
+        merged.aboutIntro.tagline = merged?.profileInfo?.tagline || defaultData.profileInfo.tagline;
       }
 
       // 按需求：旧邮箱默认不展示，避免“初始化时写过邮箱就一直显示”的问题
