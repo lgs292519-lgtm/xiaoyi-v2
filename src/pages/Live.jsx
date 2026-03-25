@@ -147,13 +147,14 @@ const Live = () => {
       '20-21': SLOT_ACTIVITY_MAP['20-21'],
     };
 
-    // 按需求：直接使用固定映射标题（让即将直播顶部文案稳定一致）
-    const activity = SLOT_ACTIVITY_MAP[slot.key] || (pool.length
+    // 按需求：优先使用管理界面的“固定安排/活动池”配置；
+    // 如果管理未配置该时段，则回退到硬编码默认值。
+    const activity = pool.length
       ? selectDeterministic(
           pool,
           slot.liveType === '随机' ? `${todayISO}-${slot.key}` : `${slot.key}-fixed`
         )
-      : fallbacks[slot.key]);
+      : fallbacks[slot.key];
     return {
       slotKey: slot.key,
       date: todayCN,

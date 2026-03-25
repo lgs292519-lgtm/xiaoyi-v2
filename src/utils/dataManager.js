@@ -17,15 +17,13 @@ const defaultData = {
   upcomingLives: [],
   regularSchedule: [
     // 每天三个固定时段：13-15 / 16-18 / 20-21（用于 Live 页随机掉落）
-    { id: 1, day: '每天', time: '13:00 - 15:00', activity: '午后歌声相伴' },
-    { id: 2, day: '每天', time: '13:00 - 15:00', activity: '咖啡与旋律' },
-    { id: 3, day: '每天', time: '13:00 - 15:00', activity: '阳光小调' },
-    { id: 4, day: '每天', time: '16:00 - 18:00', activity: '傍晚治愈电台' },
-    { id: 5, day: '每天', time: '16:00 - 18:00', activity: '暖风耳语' },
-    { id: 6, day: '每天', time: '16:00 - 18:00', activity: '晚霞合唱' },
-    { id: 7, day: '每天', time: '20:00 - 21:00', activity: '晚间心动专场' },
-    { id: 8, day: '每天', time: '20:00 - 21:00', activity: '星光点歌夜' },
-    { id: 9, day: '每天', time: '20:00 - 21:00', activity: '月色合奏' },
+    // 需求：固定时段的“默认值”来自这里；之后可在管理界面替换/增删
+    { id: 1, day: '每天', time: '13:00 - 15:00', activity: '周末歌声相伴' },
+    { id: 2, day: '每天', time: '16:00 - 18:00', activity: '新歌首发专场' },
+    // 20-21 为随机池（管理端可继续增删活动名）
+    { id: 3, day: '每天', time: '20:00 - 21:00', activity: '粉丝点歌夜' },
+    { id: 4, day: '每天', time: '20:00 - 21:00', activity: '星光点歌夜' },
+    { id: 5, day: '每天', time: '20:00 - 21:00', activity: '月色合奏' },
   ],
   aboutIntro: {
     title: '关于小意OVO',
