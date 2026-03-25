@@ -1,0 +1,218 @@
+.cotton-page {
+  min-height: 100vh;
+  padding-bottom: 3rem;
+}
+
+.cotton-header {
+  padding: 3rem 0 2rem;
+  background: linear-gradient(180deg, rgba(236, 72, 153, 0.10) 0%, transparent 100%);
+}
+
+.cotton-header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.cotton-title {
+  font-family: var(--font-serif);
+  font-size: 3rem;
+  color: var(--color-accent-pink);
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.cotton-subtitle {
+  color: var(--color-text-secondary);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.cotton-stats {
+  display: flex;
+  align-items: center;
+}
+
+.cotton-pill {
+  padding: 0.35rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(26, 26, 36, 0.25);
+  color: var(--color-text-muted);
+}
+
+.cotton-form-section {
+  padding: 2rem 0;
+}
+
+.cotton-form {
+  max-width: 720px;
+  margin: 0 auto;
+  background: rgba(26, 26, 36, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  padding: 1.75rem 1.5rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.cotton-form-row {
+  margin-bottom: 1.25rem;
+}
+
+.cotton-label {
+  display: block;
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.cotton-input,
+.cotton-textarea {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 1rem;
+  box-sizing: border-box;
+  font-family: var(--font-sans);
+}
+
+.cotton-input:focus,
+.cotton-textarea:focus {
+  outline: none;
+  border-color: var(--color-accent-gold);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.cotton-textarea {
+  resize: vertical;
+}
+
+.cotton-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.cotton-submit {
+  width: auto;
+}
+
+.cotton-hint {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.9rem;
+}
+
+.cotton-list-section {
+  padding: 1rem 0 0;
+}
+
+.cotton-empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 3rem 1rem;
+}
+
+.cotton-empty svg {
+  font-size: 3.5rem;
+  opacity: 0.3;
+  margin-bottom: 0.75rem;
+}
+
+.cotton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.cotton-card {
+  background: rgba(26, 26, 36, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.cotton-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.cotton-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+  margin-bottom: 0.6rem;
+}
+
+.cotton-nickname {
+  color: var(--color-accent-gold);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.cotton-createdAt {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.cotton-content {
+  color: var(--color-text-primary);
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cotton-delete {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 100, 100, 0.25);
+  background: rgba(255, 100, 100, 0.10);
+  color: #ff6b6b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+}
+
+.cotton-delete:hover {
+  transform: scale(1.05);
+  background: rgba(255, 100, 100, 0.18);
+}
+
+@media (max-width: 768px) {
+  .cotton-header {
+    padding: 2.5rem 0 1.5rem;
+  }
+
+  .cotton-title {
+    font-size: 2.1rem;
+  }
+
+  .cotton-form {
+    padding: 1.25rem 1rem;
+  }
+
+  .cotton-card {
+    padding: 1rem 0.9rem;
+  }
+
+  .cotton-createdAt {
+    font-size: 0.8rem;
+  }
+}
+

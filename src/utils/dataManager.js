@@ -9,6 +9,10 @@ const defaultData = {
     douyinLive: 'https://live.douyin.com/49330409995',
     email: 'yimaotongdianzi@163.com'
   },
+  // 棉花糖留言（仅本地 localStorage 持久化）
+  cottonCandy: {
+    messages: []
+  },
   upcomingLives: [
     { id: 1, title: '周末歌声相伴', date: '周六', time: '20:00', platform: 'douyin', status: '预告' },
     { id: 2, title: '新歌首发专场', date: '下周三', time: '21:00', platform: 'douyin', status: '预告' },
@@ -47,7 +51,16 @@ export const getData = () => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      // 兼容旧数据：确保新字段存在
+      return {
+        ...defaultData,
+        ...parsed,
+        cottonCandy: {
+          ...(defaultData.cottonCandy || {}),
+          ...(parsed.cottonCandy || {}),
+        },
+      };
     }
     // 首次使用，初始化默认数据
     saveData(defaultData);
@@ -155,6 +168,38 @@ export const updateHeaderText = (text) => {
   return saveData(data);
 };
 
+// ===== 棉花糖留言 =====
+export const addCottonCandyMessage = ({ nickname, content }) => {
+  const data = getData();
+  const safeNick = (nickname || '匿名').toString().trim().slice(0, 20);
+  const safeContent = (content || '').toString().trim().slice(0, 800);
+  if (!safeContent) return false;
+
+  data.cottonCandy = data.cottonCandy || { messages: [] };
+  const newMsg = {
+    id: Date.now(),
+    nickname: safeNick,
+    content: safeContent,
+    createdAt: new Date().toISOString(),
+  };
+  data.cottonCandy.messages = [...(data.cottonCandy.messages || []), newMsg];
+  return saveData(data);
+};
+
+export const deleteCottonCandyMessage = (id) => {
+  const data = getData();
+  if (!data.cottonCandy) data.cottonCandy = { messages: [] };
+  data.cottonCandy.messages = (data.cottonCandy.messages || []).filter(m => m.id !== id);
+  return saveData(data);
+};
+
+export const clearCottonCandyMessages = () => {
+  const data = getData();
+  if (!data.cottonCandy) data.cottonCandy = { messages: [] };
+  data.cottonCandy.messages = [];
+  return saveData(data);
+};
+
 // 重置为默认数据
 export const resetData = () => {
   saveData(defaultData);
@@ -175,5 +220,8 @@ export default {
   updateAboutIntro,
   updateProfileInfo,
   updateHeaderText,
+  addCottonCandyMessage,
+  deleteCottonCandyMessage,
+  clearCottonCandyMessages,
   resetData
 };

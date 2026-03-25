@@ -8,6 +8,7 @@ import Playlist from './pages/Playlist'
 import Goods from './pages/Goods'
 import Live from './pages/Live'
 import About from './pages/About'
+import CottonCandy from './pages/CottonCandy'
 import dataManager from './utils/dataManager'
 import './App.css'
 
@@ -68,6 +69,7 @@ function App() {
             <Route path="/goods" element={<Goods />} />
             <Route path="/live" element={<Live />} />
             <Route path="/about" element={<About />} />
+            <Route path="/cotton-candy" element={<CottonCandy />} />
           </Routes>
         </main>
         <Footer onAdminClick={handleAdminClick} />

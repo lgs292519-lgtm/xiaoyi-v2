@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiX, FiPlus, FiTrash2, FiSave, FiUpload, FiMusic, FiMail, FiRadio, FiCalendar, FiClock, FiUser, FiInfo } from 'react-icons/fi';
+import { FiX, FiPlus, FiTrash2, FiSave, FiUpload, FiMusic, FiMail, FiRadio, FiCalendar, FiClock, FiUser, FiInfo, FiMessageSquare } from 'react-icons/fi';
 import dataManager from '../utils/dataManager';
 import './AdminPanel.css';
 
@@ -17,6 +17,7 @@ const AdminPanel = ({ onClose }) => {
   const [headerText, setHeaderText] = useState({});
   const [newLive, setNewLive] = useState({ title: '', date: '', time: '', platform: 'douyin' });
   const [newSchedule, setNewSchedule] = useState({ day: '', time: '', activity: '' });
+  const [cottonMessages, setCottonMessages] = useState([]);
 
   useEffect(() => {
     const loadedData = dataManager.getData();
@@ -27,6 +28,7 @@ const AdminPanel = ({ onClose }) => {
     setRegularSchedule(loadedData.regularSchedule || []);
     setAboutIntro(loadedData.aboutIntro || {});
     setHeaderText(loadedData.headerText || {});
+    setCottonMessages(loadedData?.cottonCandy?.messages || []);
   }, []);
 
   const showSaveStatus = (message, isSuccess = true) => {
@@ -146,6 +148,19 @@ const AdminPanel = ({ onClose }) => {
     showSaveStatus('欢迎页文字已保存');
   };
 
+  const handleDeleteCottonMessage = (id) => {
+    dataManager.deleteCottonCandyMessage(id);
+    setCottonMessages(prev => (prev || []).filter(m => m.id !== id));
+    showSaveStatus('棉花糖留言已删除');
+  };
+
+  const handleClearCottonMessages = () => {
+    if (!window.confirm('确定要清空所有棉花糖留言吗？')) return;
+    dataManager.clearCottonCandyMessages();
+    setCottonMessages([]);
+    showSaveStatus('棉花糖留言已清空');
+  };
+
   const tabs = [
     { id: 'songs', icon: <FiMusic />, label: '歌单管理' },
     { id: 'avatar', icon: <FiUser />, label: '头像上传' },
@@ -153,6 +168,7 @@ const AdminPanel = ({ onClose }) => {
     { id: 'lives', icon: <FiRadio />, label: '直播预告' },
     { id: 'schedule', icon: <FiCalendar />, label: '固定安排' },
     { id: 'about', icon: <FiInfo />, label: '关于页面' },
+    { id: 'cotton', icon: <FiMessageSquare />, label: '棉花糖留言' },
   ];
 
   return (
@@ -475,6 +491,58 @@ const AdminPanel = ({ onClose }) => {
                 <button className="btn-save" onClick={handleSaveAbout}>
                   <FiSave /> 保存关于页面
                 </button>
+              </div>
+            )}
+
+            {/* 棉花糖留言管理 */}
+            {activeTab === 'cotton' && (
+              <div className="tab-content">
+                <h3>棉花糖留言</h3>
+                <p className="section-hint">留言只会保存在当前浏览器的 localStorage 中（与其他设备不共享）。</p>
+
+                <div className="form-row">
+                  <button className="btn-export" onClick={handleClearCottonMessages}>
+                    <FiTrash2 /> 清空所有留言
+                  </button>
+                </div>
+
+                <div className="live-list">
+                  <h4>当前留言 ({(cottonMessages || []).length} 条)</h4>
+
+                  {(cottonMessages || []).length === 0 ? (
+                    <p style={{ color: 'rgba(255,255,255,0.55)' }}>暂无留言</p>
+                  ) : (
+                    (cottonMessages || []).map((m) => (
+                      <div key={m.id} className="live-item">
+                        <div className="live-info">
+                          <span className="live-title">{m.nickname || '匿名'}</span>
+                          <span className="live-meta" style={{ marginTop: '0.25rem' }}>
+                            {m.createdAt
+                              ? new Date(m.createdAt).toLocaleString('zh-CN', {
+                                  month: '2-digit',
+                                  day: '2-digit',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })
+                              : ''}
+                          </span>
+                          <span style={{ color: 'rgba(255,255,255,0.75)', marginTop: '0.35rem', lineHeight: 1.6 }}>
+                            {m.content}
+                          </span>
+                        </div>
+
+                        <button
+                          className="btn-delete"
+                          onClick={() => handleDeleteCottonMessage(m.id)}
+                          aria-label="删除留言"
+                          title="删除留言"
+                        >
+                          <FiTrash2 />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             )}
           </div>

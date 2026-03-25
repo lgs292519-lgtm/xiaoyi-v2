@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { FiMusic, FiShoppingBag, FiRadio, FiUser } from 'react-icons/fi'
+import { FiMusic, FiShoppingBag, FiRadio, FiUser, FiMessageSquare } from 'react-icons/fi'
 import './Navbar.css'
 
 const AVATAR_SRC = '/images/avatar.jpg'
@@ -24,6 +24,7 @@ const Navbar = () => {
     { path: '/goods', label: '周边', icon: <FiShoppingBag /> },
     { path: '/live', label: '直播', icon: <FiRadio /> },
     { path: '/about', label: '关于', icon: <FiUser /> },
+    { path: '/cotton-candy', label: '棉花糖', icon: <FiMessageSquare /> },
   ]
 
   return (
