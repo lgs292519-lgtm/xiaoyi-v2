@@ -19,6 +19,13 @@ const SLOT_DEFS = [
   { key: '20-21', startMin: 20 * 60, endMin: 21 * 60, slotZh: '20-21点', timeRangeDisplay: '20：00-21：00', liveType: '随机' },
 ];
 
+// 按需求：即将直播卡片的标题固定展示为这三类
+const SLOT_ACTIVITY_MAP = {
+  '13-15': '周末歌声相伴',
+  '16-18': '新歌首发专场',
+  '20-21': '粉丝点歌夜',
+};
+
 function clampInt(n, { min, max, fallback }) {
   const v = Number.parseInt(String(n ?? ''), 10);
   if (!Number.isFinite(v)) return fallback;
@@ -119,18 +126,18 @@ const Live = () => {
     const pool = poolSource.map((item) => String(item?.activity ?? '').trim()).filter(Boolean);
 
     const fallbacks = {
-      '13-15': '午后歌声相伴',
-      '16-18': '傍晚治愈电台',
-      '20-21': '晚间心动专场',
+      '13-15': SLOT_ACTIVITY_MAP['13-15'],
+      '16-18': SLOT_ACTIVITY_MAP['16-18'],
+      '20-21': SLOT_ACTIVITY_MAP['20-21'],
     };
 
-    // 需求：13-15固定、16-18固定、20-21随机
-    const activity = pool.length
+    // 按需求：直接使用固定映射标题（让即将直播顶部文案稳定一致）
+    const activity = SLOT_ACTIVITY_MAP[slot.key] || (pool.length
       ? selectDeterministic(
-        pool,
-        slot.liveType === '随机' ? `${todayISO}-${slot.key}` : `${slot.key}-fixed`
-      )
-      : fallbacks[slot.key];
+          pool,
+          slot.liveType === '随机' ? `${todayISO}-${slot.key}` : `${slot.key}-fixed`
+        )
+      : fallbacks[slot.key]);
     return {
       slotKey: slot.key,
       date: todayCN,
@@ -187,7 +194,8 @@ const Live = () => {
         id: `override-${override.id ?? auto._slotKey}-${todayISO}-${auto._slotKey}`,
         title: override.title || auto.title,
         date: override.date || auto.date,
-        time: override.time || auto.time,
+        // 标签展示统一使用固定时段文案，避免后台手动输入 time 格式不一致
+        time: auto.time,
         timeRangeDisplay: auto.timeRangeDisplay,
         liveType: auto.liveType,
         platform: override.platform || auto.platform,
@@ -235,7 +243,7 @@ const Live = () => {
                   <span
                     className={`upcoming-live-type upcoming-live-type--${live.liveType === '固定' ? 'fixed' : 'random'}`}
                   >
-                    {live.liveType}
+                    {live.time} {live.liveType}
                   </span>
                   <div className="upcoming-meta">
                     <span><FiCalendar /> {live.date}</span>

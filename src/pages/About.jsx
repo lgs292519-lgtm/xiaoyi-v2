@@ -114,49 +114,61 @@ const About = () => {
           <div className="tags-list">
             {fixedTags.map((tag) => {
               const isVoted = Boolean(votedMap[tag.id]);
+              const handleToggleLike = async (e) => {
+                // 点击标签本身/心心按钮都触发同一逻辑
+                if (e?.stopPropagation) e.stopPropagation();
+
+                const delta = isVoted ? -1 : 1;
+                const prevMap = { ...votedMap };
+                const isLocalOnly = String(tag.id).startsWith('default-');
+
+                // 本地先更新，保证体验（失败会回滚）
+                const nextMap = { ...votedMap };
+                if (delta === 1) nextMap[tag.id] = true;
+                else delete nextMap[tag.id];
+                setVotedMap(nextMap);
+                localStorage.setItem(ABOUT_VOTED_KEY, JSON.stringify(nextMap));
+
+                // 默认标签：后端未连接时也允许点赞/取消
+                if (isLocalOnly) {
+                  setFixedTags((prev) =>
+                    prev.map((t) =>
+                      t.id === tag.id
+                        ? { ...t, likeCount: Math.max(0, (t.likeCount ?? 0) + delta) }
+                        : t
+                    )
+                  );
+                  return;
+                }
+
+                try {
+                  const updated = await dataManager.voteAboutTag(tag.id, delta);
+                  if (updated?.likeCount !== undefined) {
+                    setFixedTags((prev) =>
+                      prev.map((t) => (t.id === tag.id ? { ...t, likeCount: updated.likeCount } : t))
+                    );
+                  } else {
+                    // 接口失败回滚
+                    setVotedMap(prevMap);
+                    localStorage.setItem(ABOUT_VOTED_KEY, JSON.stringify(prevMap));
+                  }
+                } catch {
+                  setVotedMap(prevMap);
+                  localStorage.setItem(ABOUT_VOTED_KEY, JSON.stringify(prevMap));
+                }
+              };
               return (
                 <div
                   key={tag.id}
                   className={`tag-item ${isVoted ? 'tag-item--voted' : ''}`}
+                  onClick={handleToggleLike}
                 >
                   <span className="tag-name">{tag.name}</span>
                   <button
                     type="button"
                     className="tag-like-btn"
                     aria-label={`${isVoted ? '取消点赞' : '点赞'} ${tag.name}`}
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      const delta = isVoted ? -1 : 1;
-                      const prevMap = { ...votedMap };
-                      if (String(tag.id).startsWith('default-')) {
-                        setTagHint('当前标签数据未连接，稍后再试。');
-                        setTimeout(() => setTagHint(''), 2500);
-                        return;
-                      }
-
-                      // 本地先更新，保证体验（失败会回滚）
-                      const nextMap = { ...votedMap };
-                      if (delta === 1) nextMap[tag.id] = true;
-                      else delete nextMap[tag.id];
-                      setVotedMap(nextMap);
-                      localStorage.setItem(ABOUT_VOTED_KEY, JSON.stringify(nextMap));
-
-                      try {
-                        const updated = await dataManager.voteAboutTag(tag.id, delta);
-                        if (updated?.likeCount !== undefined) {
-                          setFixedTags((prev) =>
-                            prev.map((t) => (t.id === tag.id ? { ...t, likeCount: updated.likeCount } : t))
-                          );
-                        } else {
-                          // 接口失败回滚
-                          setVotedMap(prevMap);
-                          localStorage.setItem(ABOUT_VOTED_KEY, JSON.stringify(prevMap));
-                        }
-                      } catch {
-                        setVotedMap(prevMap);
-                        localStorage.setItem(ABOUT_VOTED_KEY, JSON.stringify(prevMap));
-                      }
-                    }}
+                    onClick={handleToggleLike}
                   >
                     <FiHeart className={`tag-like-icon ${isVoted ? 'tag-like-icon--voted' : ''}`} />
                     {tag.likeCount ?? 0}

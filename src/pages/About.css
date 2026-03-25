@@ -127,6 +127,7 @@
   color: var(--color-text-primary);
   transition: all 0.2s ease;
   min-width: 125px;
+  cursor: pointer;
 }
 
 .tag-item:hover {

@@ -6,12 +6,14 @@ import './Home.css'
 const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0)
   const touchStartRef = useRef({ x: 0, y: 0, active: false })
+  const suppressNextClickRef = useRef(false)
   
   const slides = [
-    { title: '国风仙侠', subtitle: '千古风华，侠骨柔情', tag: '唯美古风' },
-    { title: '治愈抒情', subtitle: '温暖心灵的声音', tag: '温暖治愈' },
-    { title: '情绪共鸣', subtitle: '那些说不出口的话，让音乐替你表达', tag: '情感疗愈' },
-    { title: '甜系元气', subtitle: '充满正能量的每一天', tag: '元气满满' },
+    { title: '国风仙侠', genreValue: '国风仙侠', subtitle: '千古风华，侠骨柔情', tag: '唯美古风' },
+    // 数据里是“情绪共鸣”，这里文案展示用“情感共鸣”
+    { title: '情感共鸣', genreValue: '情绪共鸣', subtitle: '那些说不出口的话，让音乐替你表达', tag: '情感疗愈' },
+    { title: '甜系元气', genreValue: '甜系元气', subtitle: '充满正能量的每一天', tag: '元气满满' },
+    { title: '治愈抒情', genreValue: '治愈抒情', subtitle: '温暖心灵的声音', tag: '温暖治愈' },
   ]
 
   useEffect(() => {
@@ -36,12 +38,17 @@ const Home = () => {
     const dy = t.clientY - start.y
 
     // 防止误触：需要水平滑动明显、竖直位移较小
-    if (Math.abs(dx) > 50 && Math.abs(dy) < 120) {
+    if (Math.abs(dx) > 35 && Math.abs(dy) < 160) {
       if (dx < 0) {
         setCurrentSlide((prev) => (prev + 1) % slides.length)
       } else {
         setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
       }
+      // 滑动切换时，避免点击落到“查看歌单”的链接上误跳转
+      suppressNextClickRef.current = true
+      window.setTimeout(() => {
+        suppressNextClickRef.current = false
+      }, 400)
     }
     touchStartRef.current.active = false
   }
@@ -65,7 +72,16 @@ const Home = () => {
                 <span className="slide-tag">{slide.tag}</span>
                 <h1 className="slide-title">{slide.title}</h1>
                 <p className="slide-subtitle">{slide.subtitle}</p>
-                <Link to={`/playlist?genre=${encodeURIComponent(slide.title)}`} className="slide-btn">
+                <Link
+                  to={`/playlist?genre=${encodeURIComponent(slide.genreValue)}`}
+                  className="slide-btn"
+                  onClick={(e) => {
+                    if (suppressNextClickRef.current) {
+                      e.preventDefault()
+                      e.stopPropagation()
+                    }
+                  }}
+                >
                   <FiMusic /> 查看歌单
                 </Link>
               </div>

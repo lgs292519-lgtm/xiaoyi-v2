@@ -9,11 +9,32 @@ const Playlist = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchParams] = useSearchParams()
 
-  const genres = ['全部', '国风仙侠', '治愈抒情', '情绪共鸣', '甜系元气']
+  const genreTabs = [
+    { label: '全部', value: '全部' },
+    { label: '国风仙侠', value: '国风仙侠' },
+    // 数据里是“情绪共鸣”，这里文案展示用“情感共鸣”
+    { label: '情感共鸣', value: '情绪共鸣' },
+    { label: '甜系元气', value: '甜系元气' },
+    { label: '治愈抒情', value: '治愈抒情' },
+  ]
+
+  const genreDisplayByValue = genreTabs.reduce((acc, cur) => {
+    acc[cur.value] = cur.label
+    return acc
+  }, {})
+
+  const genres = genreTabs.map((g) => g.value)
 
   useEffect(() => {
     const g = searchParams.get('genre')
-    if (g && genres.includes(g)) setCurrentGenre(g)
+    if (!g) return
+    if (genres.includes(g)) {
+      setCurrentGenre(g)
+      return
+    }
+    // 兼容：如果传参是“情感共鸣”（label），则映射到 value（情绪共鸣）
+    const mapped = genreTabs.find((t) => t.label === g)?.value
+    if (mapped) setCurrentGenre(mapped)
   }, [searchParams])
 
   const filteredSongs = songData.filter(song => {
@@ -62,7 +83,10 @@ const Playlist = () => {
             role="tablist"
             aria-label="歌曲风格分类"
           >
-            {genres.map(genre => (
+            {genreTabs.map((tab) => {
+              const genre = tab.value
+              const label = tab.label
+              return (
               <button
                 key={genre}
                 type="button"
@@ -74,10 +98,11 @@ const Playlist = () => {
                   '--tab-color': genreColors[genre] || 'var(--color-accent-gold)',
                 }}
               >
-                {genre}
+                {label}
                 <span className="tab-count">{songData.filter(s => genre === '全部' || s.genre === genre).length}</span>
               </button>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
@@ -101,7 +126,7 @@ const Playlist = () => {
                     <span className="song-name">{song.title}</span>
                     {currentGenre !== '全部' && (
                       <span className="song-genre-tag" style={{ color: genreColors[song.genre] }}>
-                        {song.genre}
+                        {genreDisplayByValue[song.genre] || song.genre}
                       </span>
                     )}
                   </div>
