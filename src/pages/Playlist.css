@@ -67,7 +67,7 @@
 .genre-tabs {
   padding: 1.5rem 0;
   position: sticky;
-  top: 80px;
+  top: var(--nav-height);
   background: rgba(10, 10, 15, 0.2);
   backdrop-filter: blur(10px);
   z-index: 100;
@@ -196,6 +196,10 @@
 
 /* ===== 响应式 ===== */
 @media (max-width: 768px) {
+  .genre-tabs {
+    top: var(--nav-height-mobile);
+  }
+
   .header-content {
     flex-direction: column;
     align-items: stretch;
@@ -205,8 +209,14 @@
     width: 100%;
   }
 
+  .playlist-header {
+    padding: 2rem 0 1.25rem;
+  }
+
   .tabs-wrapper {
     gap: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
   }
 
   .tab-btn {

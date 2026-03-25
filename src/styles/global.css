@@ -1,5 +1,9 @@
 /* ===== CSS变量 - 暗色主题 ===== */
 :root {
+  --nav-height: 80px;
+  --nav-height-mobile: 70px;
+  /* 底部图标导航条高度（与 Navbar 移动端一致，略大于实际内容以防裁切） */
+  --bottom-nav-height: 68px;
   --color-bg-primary: rgba(10, 10, 15, 0.6);
   --color-bg-secondary: rgba(18, 18, 26, 0.6);
   --color-bg-card: rgba(26, 26, 36, 0.5);
@@ -53,7 +57,9 @@ body {
   color: var(--color-text-primary);
   line-height: 1.6;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* ===== 背景遮罩 ===== */
@@ -208,6 +214,11 @@ body::before {
 
 /* ===== 响应式 ===== */
 @media (max-width: 768px) {
+  /* 移动端 fixed 背景易卡顿/裁切，改为随页面滚动 */
+  body {
+    background-attachment: scroll;
+  }
+
   .section-title {
     font-size: 1.8rem;
   }
@@ -217,6 +228,8 @@ body::before {
   }
   
   .main-content {
-    padding-top: 70px;
+    padding-top: var(--nav-height-mobile);
+    /* 为底部固定导航栏 + 刘海屏安全区留出空间，避免内容被遮挡 */
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   }
 }

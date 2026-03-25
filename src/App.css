@@ -1,0 +1,74 @@
+/* 欢迎层：响应式字号与安全区，避免手机溢出与遮挡 */
+.welcome-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  cursor: pointer;
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
+    env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+  box-sizing: border-box;
+}
+
+.welcome-screen__bg {
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/beijing.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.welcome-screen__dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.welcome-screen__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  padding: 1.25rem;
+  padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
+  text-align: center;
+}
+
+.welcome-screen__title {
+  color: #fff;
+  margin: 0 0 0.75rem;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+  font-family: var(--font-serif);
+  font-size: clamp(1.75rem, 6vw + 0.5rem, 3.5rem);
+  line-height: 1.2;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+.welcome-screen__subtitle {
+  color: #fff;
+  margin: 0;
+  opacity: 0.95;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
+  font-size: clamp(1rem, 3.5vw + 0.35rem, 1.75rem);
+  line-height: 1.35;
+  max-width: min(100%, 22rem);
+}
+
+@media (min-width: 769px) {
+  .welcome-screen__content {
+    padding-bottom: 5rem;
+  }
+
+  .welcome-screen__title {
+    font-size: clamp(2.5rem, 4vw + 1rem, 4.5rem);
+    margin-bottom: 1.25rem;
+  }
+
+  .welcome-screen__subtitle {
+    font-size: clamp(1.25rem, 1.5vw + 0.75rem, 2.25rem);
+    max-width: 36rem;
+  }
+}

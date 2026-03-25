@@ -9,6 +9,7 @@ import Goods from './pages/Goods'
 import Live from './pages/Live'
 import About from './pages/About'
 import dataManager from './utils/dataManager'
+import './App.css'
 
 function App() {
   const audioRef = useRef(null)
@@ -45,53 +46,14 @@ function App() {
         <audio ref={audioRef} src="/music/yueding.mp3" loop />
 
         {showWelcome && (
-          <div
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 99999,
-              cursor: 'pointer'
-            }}
-            onClick={startMusic}
-          >
-            <div
-              aria-hidden
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                backgroundImage: "url('/images/beijing.png')",
-                backgroundSize: 'cover',
-                backgroundPosition: 'center'
-              }}
-            />
-            <div style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'rgba(0,0,0,0.4)'
-            }} />
-            <div style={{
-              position: 'relative',
-              zIndex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              height: '100%',
-              paddingBottom: '80px'
-            }}>
-              <h1 style={{ color: 'white', fontSize: '96px', marginBottom: '30px', textShadow: '2px 2px 8px rgba(0,0,0,0.7)', fontFamily: 'var(--font-serif)' }}>
+          <div className="welcome-screen" onClick={startMusic} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startMusic(); } }}>
+            <div className="welcome-screen__bg" aria-hidden />
+            <div className="welcome-screen__dim" aria-hidden />
+            <div className="welcome-screen__content">
+              <h1 className="welcome-screen__title">
                 {adminData?.headerText?.title || '欢迎来到 XIAOYI'}
               </h1>
-              <p style={{ color: 'white', fontSize: '40px', opacity: 0.9, textShadow: '1px 1px 4px rgba(0,0,0,0.7)' }}>
+              <p className="welcome-screen__subtitle">
                 {adminData?.headerText?.subtitle || '点击任意处开始'}
               </p>
             </div>

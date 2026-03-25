@@ -190,6 +190,10 @@
 }
 
 @media (max-width: 768px) {
+  .goods-header {
+    padding: 2rem 0 1.5rem;
+  }
+
   .goods-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;

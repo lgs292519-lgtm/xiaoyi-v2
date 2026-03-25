@@ -288,16 +288,26 @@
 
 @media (max-width: 768px) {
   .hero-section {
-    height: 60vh;
-    min-height: 400px;
+    height: min(70dvh, 560px);
+    min-height: 280px;
+  }
+
+  .slide-content {
+    padding: 1rem 1rem 5rem;
   }
 
   .slide-title {
-    font-size: 2.5rem;
+    font-size: clamp(1.75rem, 7vw, 2.75rem);
   }
 
   .slide-subtitle {
-    font-size: 1rem;
+    font-size: clamp(0.9rem, 3.5vw, 1.05rem);
+    padding: 0 0.25rem;
+  }
+
+  /* 轮播点避开底部固定导航 */
+  .carousel-dots {
+    bottom: calc(1rem + var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   }
 
   .quick-access {
@@ -315,6 +325,17 @@
   }
 
   .slogan-content h2 {
-    font-size: 1.5rem;
+    font-size: clamp(1.1rem, 4vw, 1.5rem);
+    letter-spacing: 0.12em;
+    padding: 0 0.5rem;
+  }
+
+  .slogan-content p {
+    font-size: 0.95rem;
+    padding: 0 0.5rem;
+  }
+
+  .slogan-section {
+    padding: 3rem 0;
   }
 }

@@ -332,6 +332,10 @@
 }
 
 @media (max-width: 768px) {
+  .footer {
+    padding-bottom: calc(3rem + var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  }
+
   .footer-content {
     flex-direction: column;
     text-align: center;

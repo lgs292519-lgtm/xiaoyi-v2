@@ -263,9 +263,14 @@
 
 /* ===== 响应式 ===== */
 @media (max-width: 768px) {
+  .about-header {
+    padding: 2.5rem 0 2rem;
+  }
+
   .profile-section {
     flex-direction: column;
     text-align: center;
+    gap: 1.5rem;
   }
 
   .profile-avatar {
@@ -274,10 +279,35 @@
   }
 
   .profile-info h1 {
-    font-size: 2rem;
+    font-size: clamp(1.75rem, 6vw, 2rem);
+    word-break: break-word;
+  }
+
+  .profile-tagline {
+    font-size: 1rem;
   }
 
   .profile-stats {
     justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .intro-card {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .thanks-content h2 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .profile-stats {
+    gap: 1rem 2rem;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
   }
 }
