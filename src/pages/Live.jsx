@@ -159,7 +159,10 @@ const Live = () => {
       return !day || day === '每天' || day === todayCN
     })
     const poolSource = slotPoolDaily.length ? slotPoolDaily : entries
-    const pool = poolSource.map((e) => String(e?.activity ?? '').trim()).filter(Boolean)
+    // 重要：把“未配置活动”等占位值当作空，确保“删了就不显示”
+    const pool = poolSource
+      .map((e) => String(e?.activity ?? '').trim())
+      .filter((t) => t && t !== '未配置活动');
     if (!pool.length) continue // 无配置 => 隐藏该时段
 
     const liveType = parsedSlot.liveType
