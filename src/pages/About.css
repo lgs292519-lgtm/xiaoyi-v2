@@ -115,6 +115,23 @@
   flex-wrap: wrap;
 }
 
+.tags-divider {
+  width: 100%;
+  flex-basis: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0.75rem 0;
+}
+
+.tags-divider-title {
+  width: 100%;
+  flex-basis: 100%;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  margin: 0 0 0.75rem 0;
+}
+
 .tag-item {
   display: inline-flex;
   align-items: center;

@@ -265,6 +265,18 @@ export const voteAboutTag = async (tagId, delta = 1) => {
   return data?.tag || null
 }
 
+// 备用标签点赞（达到 >=3 自动升级为固定标签）
+export const voteAboutExtraTag = async (extraId, delta = 1) => {
+  const res = await fetch(`${API_BASE}/api/about-tags/extra-vote`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ extraId, delta }),
+  })
+  if (!res.ok) return null
+  const data = await res.json().catch(() => ({}))
+  return data || null
+}
+
 export const suggestAboutTag = async (name) => {
   const res = await fetch(`${API_BASE}/api/about-tags`, {
     method: 'POST',
@@ -313,6 +325,7 @@ export default {
   clearCottonCandyMessages,
   getAboutTags,
   voteAboutTag,
+  voteAboutExtraTag,
   suggestAboutTag,
   promoteAboutExtraTag,
   resetData

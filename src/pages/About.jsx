@@ -20,9 +20,29 @@ const ABOUT_VOTED_KEY = 'xiaoyi_about_tag_votes';
 const About = () => {
   const [data, setData] = useState(null);
   const [fixedTags, setFixedTags] = useState([]);
+  const [extraTags, setExtraTags] = useState([]);
   const [votedMap, setVotedMap] = useState({});
   const [tagInput, setTagInput] = useState('');
   const [tagHint, setTagHint] = useState('');
+
+  const refreshAboutTags = async () => {
+    const res = await dataManager.getAboutTags()
+    const fixed = Array.isArray(res?.fixed) ? res.fixed : []
+    const extras = Array.isArray(res?.extras) ? res.extras : []
+
+    setExtraTags(extras)
+    if (fixed.length) {
+      setFixedTags(fixed)
+    } else {
+      setFixedTags(
+        DEFAULT_ABOUT_TAGS.map((name, idx) => ({
+          id: `default-${idx}`,
+          name,
+          likeCount: 0,
+        }))
+      )
+    }
+  }
 
   useEffect(() => {
     const refresh = () => setData(dataManager.getData());
@@ -40,20 +60,7 @@ const About = () => {
     }
 
     // 获取固定标签 + 备用标签数据（固定标签会自动种子化）
-    dataManager.getAboutTags().then(({ fixed } = {}) => {
-      const list = Array.isArray(fixed) ? fixed : [];
-      if (list.length) {
-        setFixedTags(list);
-      } else {
-        setFixedTags(
-          DEFAULT_ABOUT_TAGS.map((name, idx) => ({
-            id: `default-${idx}`,
-            name,
-            likeCount: 0,
-          }))
-        );
-      }
-    });
+    refreshAboutTags()
   }, []);
 
   if (!data) {
@@ -175,6 +182,70 @@ const About = () => {
                   </button>
                 </div>
               );
+            })}
+
+            {extraTags.length ? <div className="tags-divider" /> : null}
+            {extraTags.length ? (
+              <div className="tags-divider-title">备用标签（点心心：3个点赞自动升级为正式标签）</div>
+            ) : null}
+
+            {extraTags.map((tag) => {
+              const isVoted = Boolean(votedMap[tag.id])
+              const handleToggleExtraLike = async (e) => {
+                if (e?.stopPropagation) e.stopPropagation()
+
+                const delta = isVoted ? -1 : 1
+                const prevMap = { ...votedMap }
+
+                const nextMap = { ...votedMap }
+                if (delta === 1) nextMap[tag.id] = true
+                else delete nextMap[tag.id]
+                setVotedMap(nextMap)
+                localStorage.setItem(ABOUT_VOTED_KEY, JSON.stringify(nextMap))
+
+                try {
+                  const updated = await dataManager.voteAboutExtraTag(tag.id, delta)
+                  if (!updated?.ok) {
+                    setVotedMap(prevMap)
+                    localStorage.setItem(ABOUT_VOTED_KEY, JSON.stringify(prevMap))
+                    return
+                  }
+
+                  if (updated?.promoted && updated?.fixedTag?.id && delta === 1) {
+                    // 备用标签已升级为固定标签：把“心心状态”迁移到固定标签 id 上
+                    const migrated = { ...nextMap }
+                    delete migrated[tag.id]
+                    migrated[updated.fixedTag.id] = true
+                    setVotedMap(migrated)
+                    localStorage.setItem(ABOUT_VOTED_KEY, JSON.stringify(migrated))
+                  }
+
+                  // 重新拉取，保证列表/计数一致（备用标签升级后它会消失）
+                  await refreshAboutTags()
+                } catch {
+                  setVotedMap(prevMap)
+                  localStorage.setItem(ABOUT_VOTED_KEY, JSON.stringify(prevMap))
+                }
+              }
+
+              return (
+                <div
+                  key={tag.id}
+                  className={`tag-item ${isVoted ? 'tag-item--voted' : ''}`}
+                  onClick={handleToggleExtraLike}
+                >
+                  <span className="tag-name">{tag.name}</span>
+                  <button
+                    type="button"
+                    className="tag-like-btn"
+                    aria-label={`${isVoted ? '取消点赞' : '点赞'} ${tag.name}`}
+                    onClick={handleToggleExtraLike}
+                  >
+                    <FiHeart className={`tag-like-icon ${isVoted ? 'tag-like-icon--voted' : ''}`} />
+                    {tag.suggestCount ?? 0}
+                  </button>
+                </div>
+              )
             })}
           </div>
 
