@@ -95,6 +95,7 @@ const Live = () => {
 
   const upcomingLivesManual = data.upcomingLives || [];
   const regularSchedule = data.regularSchedule || [];
+  const douyinLiveUrl = data?.contact?.douyinLive || '';
 
   const now = new Date(nowTick);
   const todayISO = formatISODate(now);
@@ -241,6 +242,21 @@ const Live = () => {
                     <span><FiClock /> {live.timeRangeDisplay}</span>
                   </div>
                   <span className="upcoming-platform">{live.platform}</span>
+                  {douyinLiveUrl ? (
+                    <button
+                      type="button"
+                      className="upcoming-enter-btn"
+                      aria-label="进入直播间"
+                      onClick={() => {
+                        // 移动端更稳定的跳转方式（避免弹窗拦截）
+                        window.location.href = douyinLiveUrl;
+                      }}
+                    >
+                      进入直播间
+                    </button>
+                  ) : (
+                    <span className="upcoming-enter-missing">未配置直播间链接</span>
+                  )}
                 </div>
                 <span className="upcoming-status">{live.status}</span>
               </div>
