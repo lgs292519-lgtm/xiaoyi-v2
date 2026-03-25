@@ -40,6 +40,7 @@
   border-radius: 50%;
   overflow: hidden;
   flex-shrink: 0;
+  position: relative;
   border: 2px solid rgba(201, 169, 110, 0.45);
   box-shadow: 0 0 20px rgba(201, 169, 110, 0.25);
   background: linear-gradient(135deg, #2a2a3d, #1a1a2e);
@@ -63,6 +64,34 @@
   font-weight: bold;
   background: linear-gradient(135deg, var(--color-accent-gold), #d4b896);
   color: var(--color-bg-primary);
+}
+
+.live-badge {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.9);
+  user-select: none;
+}
+
+.live-badge--link {
+  text-decoration: none;
+  cursor: pointer;
+  background: rgba(201, 169, 110, 0.9);
+  border-color: rgba(201, 169, 110, 0.9);
+  color: #12121a;
+  box-shadow: 0 6px 18px rgba(201, 169, 110, 0.25);
+}
+
+.live-badge--off {
+  background: rgba(255, 255, 255, 0.10);
 }
 
 .logo-text {
@@ -183,6 +212,13 @@
   .logo-avatar {
     width: 40px;
     height: 40px;
+  }
+
+  .live-badge {
+    right: 3px;
+    bottom: 3px;
+    font-size: 0.55rem;
+    padding: 0.12rem 0.42rem;
   }
 
   .logo-fallback {

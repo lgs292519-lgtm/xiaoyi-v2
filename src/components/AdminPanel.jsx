@@ -173,8 +173,8 @@ const AdminPanel = ({ onClose }) => {
     { id: 'contact', icon: <FiMail />, label: '联系方式' },
     { id: 'lives', icon: <FiRadio />, label: '直播预告' },
     { id: 'schedule', icon: <FiCalendar />, label: '固定安排' },
-    { id: 'about', icon: <FiInfo />, label: '关于页面' },
     { id: 'cotton', icon: <FiMessageSquare />, label: '棉花糖留言' },
+    { id: 'about', icon: <FiInfo />, label: '关于页面' },
   ];
 
   return (

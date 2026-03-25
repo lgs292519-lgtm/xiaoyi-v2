@@ -158,6 +158,10 @@
   --accent-color: #fe2c55;
 }
 
+.recording-card {
+  --accent-color: #8b5cf6;
+}
+
 .contact-item {
   display: flex;
   flex-direction: column;
@@ -211,6 +215,11 @@
 }
 
 .douyin-card .contact-text {
+  color: #fff;
+  font-weight: 600;
+}
+
+.recording-card .contact-text {
   color: #fff;
   font-weight: 600;
 }

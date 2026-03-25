@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiHeart, FiMail } from 'react-icons/fi';
+import { FiHeart, FiMail, FiVideo } from 'react-icons/fi';
 import { FaTiktok } from 'react-icons/fa';
 import dataManager from '../utils/dataManager';
 import './About.css';
@@ -20,6 +20,7 @@ const About = () => {
   const aboutIntro = data.aboutIntro || {};
   const profileInfo = data.profileInfo || {};
   const avatarUrl = data.avatarUrl || '/images/avatar.jpg';
+  const recordingUrl = 'https://www.alipan.com/s/Z46yB47C7F7';
 
   const contentParagraphs = Array.isArray(aboutIntro.content) 
     ? aboutIntro.content 
@@ -76,6 +77,12 @@ const About = () => {
               <div className="contact-item">
                 <span className="contact-icon"><FaTiktok /></span>
                 <span className="contact-text">抖音直播间</span>
+              </div>
+            </a>
+            <a href={recordingUrl} target="_blank" rel="noopener noreferrer" className="contact-card recording-card">
+              <div className="contact-item">
+                <span className="contact-icon"><FiVideo /></span>
+                <span className="contact-text">录屏回放</span>
               </div>
             </a>
           </div>
