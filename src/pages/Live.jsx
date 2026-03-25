@@ -204,6 +204,10 @@ const Live = () => {
     .filter((slot) => nowMinutes < slot.startMin)
     .map((slot) => {
       const override = overrides.get(slot.slotKey)
+      // 管理端“删除自动生成项”本质是写一条已隐藏记录；
+      // 前端渲染时跳过该时段，确保卡片真的消失。
+      if (override && override.status === '已隐藏') return null
+
       if (!override) {
         return {
           id: `auto-${todayISO}-${slot.slotKey}`,
@@ -231,6 +235,7 @@ const Live = () => {
         _startMin: slot.startMin,
       }
     })
+    .filter(Boolean)
 
   upcomingLives.sort((a, b) => a._startMin - b._startMin)
 

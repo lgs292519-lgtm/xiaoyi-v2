@@ -8,6 +8,16 @@ const AdminPanel = ({ onClose }) => {
   const ADMIN_AUTH_KEY = 'xiaoyi_admin_authed_at'
   const ADMIN_AUTH_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7天免密
 
+  const WEEKDAY_TO_CN = {
+    0: '周日',
+    1: '周一',
+    2: '周二',
+    3: '周三',
+    4: '周四',
+    5: '周五',
+    6: '周六',
+  }
+
   const [activeTab, setActiveTab] = useState('songs');
   const [data, setData] = useState({});
   const [songs, setSongs] = useState([]);
@@ -45,6 +55,73 @@ const AdminPanel = ({ onClose }) => {
       setAboutExtraTags(Array.isArray(extras) ? extras : []);
     });
   }, []);
+
+  function clampInt(n, { min, max, fallback }) {
+    const v = Number.parseInt(String(n ?? ''), 10)
+    if (!Number.isFinite(v)) return fallback
+    return Math.min(max, Math.max(min, v))
+  }
+
+  function formatISODate(d) {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+
+  function getNowMinutes(d = new Date()) {
+    return d.getHours() * 60 + d.getMinutes()
+  }
+
+  function hashToInt(str) {
+    // Simple deterministic hash (non-crypto)
+    let h = 5381
+    for (let i = 0; i < str.length; i++) h = (h * 33) ^ str.charCodeAt(i)
+    return h >>> 0
+  }
+
+  function selectDeterministic(arr, seedStr) {
+    const list = Array.isArray(arr) ? arr.filter(Boolean) : []
+    if (list.length === 0) return ''
+    const idx = hashToInt(seedStr) % list.length
+    return list[idx]
+  }
+
+  function parseTimeRangeToSlot(timeStr) {
+    const raw = String(timeStr ?? '').trim()
+    if (!raw) return null
+    const s = raw.replace(/\s/g, '').replace(/点/g, '')
+
+    const m1 = s.match(/^(\d{1,2})(?::[0]*0)?[-—~至](\d{1,2})(?::[0]*0)?$/)
+    const m2 = !m1 ? s.match(/^(\d{1,2})[-—~至](\d{1,2})$/) : null
+    const m = m1 || m2
+    if (!m) return null
+
+    const startHour = Number(m[1])
+    const endHour = Number(m[2])
+    if (!Number.isFinite(startHour) || !Number.isFinite(endHour)) return null
+    if (startHour < 0 || startHour > 24) return null
+    if (endHour < 0 || endHour > 24) return null
+
+    const startMin = startHour * 60
+    const endMin = endHour * 60
+    const slotKey = `${startHour}-${endHour}`
+    const slotZh = `${startHour}-${endHour}点`
+    const timeRangeDisplay = `${startHour}：00-${endHour}：00`
+
+    let liveType = '固定'
+    if (slotKey === '20-21') liveType = '随机'
+
+    return { slotKey, startHour, endHour, startMin, endMin, slotZh, timeRangeDisplay, liveType }
+  }
+
+  function parseHourFromTime(timeStr) {
+    const m = String(timeStr ?? '').match(/(\d{1,2})/)
+    if (!m) return null
+    const hh = Number(m[1])
+    if (!Number.isFinite(hh)) return null
+    return clampInt(hh, { min: 0, max: 23, fallback: null })
+  }
 
   const showSaveStatus = (message, isSuccess = true) => {
     setSaveStatus(isSuccess ? `✓ ${message}` : `✗ ${message}`);
@@ -144,11 +221,159 @@ const AdminPanel = ({ onClose }) => {
   };
 
   const handleDeleteLive = (id) => {
-    const updated = upcomingLives.filter(l => l.id !== id);
-    setUpcomingLives(updated);
-    dataManager.updateUpcomingLives(updated);
-    showSaveStatus('直播预告已删除');
+    // 删除自动生成项：写入已隐藏记录，而不是物理删除
+    const updated = upcomingLives.map((l) => (l.id === id ? { ...l, status: '已隐藏' } : l))
+    setUpcomingLives(updated)
+    dataManager.updateUpcomingLives(updated)
+    showSaveStatus('直播预告已隐藏');
   };
+
+  const handleHideLiveByGenerated = (generated) => {
+    const next = [
+      ...upcomingLives,
+      {
+        id: Date.now(),
+        title: '',
+        date: generated.date,
+        time: generated.time,
+        platform: generated.platform || 'douyin',
+        status: '已隐藏',
+      },
+    ]
+    setUpcomingLives(next)
+    dataManager.updateUpcomingLives(next)
+    showSaveStatus('直播预告已隐藏')
+  }
+
+  const handleEditLiveTitle = (entry) => {
+    const nextTitle = window.prompt('修改直播预告标题：', entry.title || '')
+    if (!nextTitle) return
+
+    // 对生成项：新增一条覆盖记录；对手动项：直接更新
+    if (entry._manualId) {
+      const updated = upcomingLives.map((l) => (l.id === entry._manualId ? { ...l, title: nextTitle, status: '预告' } : l))
+      setUpcomingLives(updated)
+      dataManager.updateUpcomingLives(updated)
+      showSaveStatus('直播预告已更新')
+      return
+    }
+
+    const next = [
+      ...upcomingLives,
+      {
+        id: Date.now(),
+        title: nextTitle,
+        date: entry.date,
+        time: entry.time,
+        platform: entry.platform || 'douyin',
+        status: '预告',
+      },
+    ]
+    setUpcomingLives(next)
+    dataManager.updateUpcomingLives(next)
+    showSaveStatus('直播预告已更新')
+  }
+
+  const todayNow = new Date()
+  const todayISO = formatISODate(todayNow)
+  const todayCN = WEEKDAY_TO_CN[todayNow.getDay()]
+  const nowMinutes = getNowMinutes(todayNow)
+
+  // 即将直播：从固定安排（regularSchedule）自动生成，并与后台手动修改/隐藏合并
+  const mergedUpcomingLivesForAdmin = (() => {
+    const regularScheduleSafe = Array.isArray(regularSchedule) ? regularSchedule : []
+    const scheduleEntriesBySlotKey = new Map() // slotKey -> { parsedSlot, entries }
+
+    for (const item of regularScheduleSafe) {
+      if (!item) continue
+      const parsed = parseTimeRangeToSlot(item?.time)
+      if (!parsed) continue
+      const key = parsed.slotKey
+      if (!scheduleEntriesBySlotKey.has(key)) {
+        scheduleEntriesBySlotKey.set(key, { parsedSlot: parsed, entries: [] })
+      }
+      scheduleEntriesBySlotKey.get(key).entries.push(item)
+    }
+
+    const generatedSlots = []
+    for (const [, value] of scheduleEntriesBySlotKey.entries()) {
+      const { parsedSlot, entries } = value
+      const slotPoolDaily = entries.filter((e) => {
+        const day = String(e?.day ?? '')
+        return !day || day === '每天' || day === todayCN
+      })
+      const poolSource = slotPoolDaily.length ? slotPoolDaily : entries
+      const pool = poolSource.map((e) => String(e?.activity ?? '').trim()).filter((t) => t && t !== '未配置活动')
+      if (!pool.length) continue
+
+      const liveType = parsedSlot.liveType
+      const seedStr = liveType === '随机' ? `${todayISO}-${parsedSlot.slotKey}` : `${parsedSlot.slotKey}-fixed`
+      const title = selectDeterministic(pool, seedStr)
+
+      if (nowMinutes >= parsedSlot.startMin) continue
+
+      generatedSlots.push({
+        slotKey: parsedSlot.slotKey,
+        startHour: parsedSlot.startHour,
+        date: todayCN,
+        time: parsedSlot.slotZh,
+        timeRangeDisplay: parsedSlot.timeRangeDisplay,
+        platform: 'douyin',
+        liveType,
+        title,
+        status: '预告',
+        _startMin: parsedSlot.startMin,
+      })
+    }
+
+    generatedSlots.sort((a, b) => a._startMin - b._startMin)
+    const slotByStartHour = new Map(generatedSlots.map((s) => [s.startHour, s]))
+
+    // 手动项：根据时间映射到固定时段 slot
+    const manualBySlotKey = new Map() // slotKey -> manual live (latest by id)
+    for (const m of upcomingLives || []) {
+      if (!m) continue
+      const manualDate = String(m.date ?? '')
+      const isToday = manualDate === todayCN || manualDate === '今天'
+      if (!isToday) continue
+      const hour = parseHourFromTime(m.time)
+      if (hour === null) continue
+      const slot = slotByStartHour.get(hour)
+      if (!slot) continue
+
+      const cur = manualBySlotKey.get(slot.slotKey)
+      if (!cur || Number(m.id ?? 0) > Number(cur.id ?? 0)) {
+        manualBySlotKey.set(slot.slotKey, m)
+      }
+    }
+
+    // 合并：已隐藏 => 不展示；预告 => 覆盖标题/内容
+    const merged = []
+    for (const g of generatedSlots) {
+      const manual = manualBySlotKey.get(g.slotKey)
+      if (manual && manual.status === '已隐藏') continue
+      if (manual) {
+        merged.push({
+          ...g,
+          id: manual.id,
+          _manualId: manual.id,
+          title: manual.title || g.title,
+          date: manual.date || g.date,
+          time: manual.time || g.time,
+          platform: manual.platform || g.platform,
+          status: manual.status || g.status,
+        })
+      } else {
+        merged.push({
+          ...g,
+          id: `gen-${g.slotKey}-${todayISO}`,
+          _manualId: null,
+        })
+      }
+    }
+
+    return merged
+  })()
 
   // 固定直播安排
   const handleAddSchedule = () => {
@@ -422,17 +647,27 @@ const AdminPanel = ({ onClose }) => {
 
                 <div className="live-list">
                   <h4>当前预告</h4>
-                  {upcomingLives.map(live => (
+                  {mergedUpcomingLivesForAdmin.map((live) => (
                     <div key={live.id} className="live-item">
                       <div className="live-info">
-                        <span className="live-title">{live.title}</span>
+                        <span
+                          className="live-title"
+                          style={{ cursor: 'pointer' }}
+                          title="点击修改标题"
+                          onClick={() => handleEditLiveTitle(live)}
+                        >
+                          {live.title}
+                        </span>
                         <span className="live-meta">
                           <FiCalendar /> {live.date} <FiClock /> {live.time}
                         </span>
                       </div>
                       <button
                         className="btn-delete"
-                        onClick={() => handleDeleteLive(live.id)}
+                        onClick={() => {
+                          if (live._manualId) handleDeleteLive(live._manualId)
+                          else handleHideLiveByGenerated(live)
+                        }}
                       >
                         <FiTrash2 />
                       </button>
