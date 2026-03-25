@@ -57,22 +57,19 @@ function App() {
             }}
             onClick={startMusic}
           >
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
+            <div
+              aria-hidden
               style={{
                 position: 'absolute',
                 top: 0,
                 left: 0,
                 width: '100%',
                 height: '100%',
-                objectFit: 'cover'
+                backgroundImage: "url('/images/beijing.png')",
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
               }}
-            >
-              <source src="/videos/beijing.mp4" type="video/mp4" />
-            </video>
+            />
             <div style={{
               position: 'absolute',
               top: 0,
