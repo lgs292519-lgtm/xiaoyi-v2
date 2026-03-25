@@ -235,7 +235,8 @@ const About = () => {
           <div className="contact-card email-card">
             <div className="contact-item">
               <span className="contact-icon"><FiMail /></span>
-              <span className="contact-text">{contact.email || '请在棉花糖处留言'}</span>
+              {/* 按需求：关于页不展示邮箱内容，统一提示去棉花糖留言联络 */}
+              <span className="contact-text">将在棉花糖中进行联络</span>
             </div>
           </div>
           <p className="contact-hint">商务合作、粉丝群等问题可通过邮箱联系（非本人）</p>
