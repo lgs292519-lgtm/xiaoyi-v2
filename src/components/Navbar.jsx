@@ -6,46 +6,14 @@ import './Navbar.css'
 
 const AVATAR_SRC = '/images/avatar.jpg'
 
-const WEEKDAY_TO_CN = {
-  0: '周日',
-  1: '周一',
-  2: '周二',
-  3: '周三',
-  4: '周四',
-  5: '周五',
-  6: '周六',
-}
-
-function parseHHmmToMinutes(s) {
-  const m = String(s || '').match(/^(\d{2}):(\d{2})$/)
-  if (!m) return null
-  const hh = Number(m[1])
-  const mm = Number(m[2])
-  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null
-  return hh * 60 + mm
-}
-
-function computeIsLive(regularSchedule = []) {
-  const now = new Date()
-  const currentDay = WEEKDAY_TO_CN[now.getDay()]
-  const nowMinutes = now.getHours() * 60 + now.getMinutes()
-
-  for (const item of regularSchedule || []) {
-    if (!item) continue
-    if (item.day !== currentDay) continue
-
-    // 例如： "21:00 - 23:00"
-    const m = String(item.time || '').match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/)
-    if (!m) continue
-
-    const start = parseHHmmToMinutes(m[1])
-    const end = parseHHmmToMinutes(m[2])
-    if (start === null || end === null) continue
-
-    if (nowMinutes >= start && nowMinutes <= end) return true
-  }
-
-  return false
+function parseDouyinLiveId(douyinLive = '') {
+  const s = String(douyinLive || '').trim()
+  if (!s) return ''
+  const m = s.match(/live\.douyin\.com\/(\d+)/)
+  if (m?.[1]) return m[1]
+  // allow passing raw numeric id
+  const m2 = s.match(/^(\d{5,})$/)
+  return m2?.[1] || ''
 }
 
 const Navbar = () => {
@@ -53,8 +21,9 @@ const Navbar = () => {
   const [avatarError, setAvatarError] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState(AVATAR_SRC)
   const [douyinLive, setDouyinLive] = useState('')
-  const [regularSchedule, setRegularSchedule] = useState([])
   const [isLiveNow, setIsLiveNow] = useState(false)
+  const [liveBadgeState, setLiveBadgeState] = useState('unknown') // unknown | live | off
+  const [liveTitle, setLiveTitle] = useState('')
   const location = useLocation()
 
   useEffect(() => {
@@ -69,16 +38,37 @@ const Navbar = () => {
     const data = dataManager.getData()
     setAvatarUrl(data?.avatarUrl || AVATAR_SRC)
     setDouyinLive(data?.contact?.douyinLive || '')
-    const schedule = data?.regularSchedule || []
-    setRegularSchedule(schedule)
 
-    const tick = () => {
-      setIsLiveNow(computeIsLive(schedule))
+    const liveId = parseDouyinLiveId(data?.contact?.douyinLive || '')
+
+    const fetchLiveStatus = async () => {
+      if (!liveId) {
+        setLiveBadgeState('off')
+        setIsLiveNow(false)
+        setLiveTitle('')
+        return
+      }
+      try {
+        const res = await fetch(`/api/douyin-status?live_id=${encodeURIComponent(liveId)}`, {
+          headers: { accept: 'application/json; charset=utf-8' },
+        })
+        const j = await res.json().catch(() => ({}))
+        const isLive = j?.is_live === true
+        const isUnknown = j?.is_live === null || typeof j?.is_live === 'undefined'
+
+        setIsLiveNow(isLive)
+        setLiveTitle(j?.title || '')
+        setLiveBadgeState(isUnknown ? 'unknown' : isLive ? 'live' : 'off')
+      } catch {
+        setIsLiveNow(false)
+        setLiveTitle('')
+        setLiveBadgeState('unknown')
+      }
     }
 
-    tick()
-    // 每分钟更新一次，避免太频繁
-    const t = setInterval(tick, 60_000)
+    // 首次 + 每分钟更新一次
+    fetchLiveStatus()
+    const t = setInterval(fetchLiveStatus, 60_000)
     return () => clearInterval(t)
   }, [])
 
@@ -112,16 +102,22 @@ const Navbar = () => {
                 rel="noopener noreferrer"
                 className="live-badge live-badge--link"
                 aria-label="开播中，点击进入直播间"
-                title="开播中，点击进入直播间"
+                title={liveTitle ? `开播中：${liveTitle}` : '开播中，点击进入直播间'}
               >
-                开播
+                开播中
               </a>
             ) : (
               <span
                 className={`live-badge ${douyinLive ? 'live-badge--off' : ''}`}
-                title={douyinLive ? '未开播' : '未配置直播间链接'}
+                title={
+                  douyinLive
+                    ? liveBadgeState === 'unknown'
+                      ? '状态未知（稍后自动刷新）'
+                      : '未开播'
+                    : '未配置直播间链接'
+                }
               >
-                未开播
+                {douyinLive ? (liveBadgeState === 'unknown' ? '检测中' : '未开播') : '未配置'}
               </span>
             )}
           </span>
