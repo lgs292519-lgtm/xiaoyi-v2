@@ -7,7 +7,7 @@ const defaultData = {
   contact: {
     douyinHome: 'https://www.douyin.com/user/MS4wLjABAAAApLv52fKEfQJaaUwamy-AXFsBwWFgARL7j9_bsv42RHp2ULyl7FokZXbd3oxb_Ewj',
     douyinLive: 'https://live.douyin.com/49330409995',
-    email: 'yimaotongdianzi@163.com'
+    email: ''
   },
   // 棉花糖留言（仅本地 localStorage 持久化）
   cottonCandy: {

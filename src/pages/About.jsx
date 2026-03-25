@@ -223,7 +223,7 @@ const About = () => {
           <div className="contact-card email-card">
             <div className="contact-item">
               <span className="contact-icon"><FiMail /></span>
-              <span className="contact-text">{contact.email || 'yimaotongdianzi@163.com'}</span>
+              <span className="contact-text">{contact.email || '请在棉花糖处留言'}</span>
             </div>
           </div>
           <p className="contact-hint">商务合作、粉丝群等问题可通过邮箱联系（非本人）</p>
