@@ -384,19 +384,19 @@ const AdminPanel = ({ onClose }) => {
             {/* 固定直播安排 */}
             {activeTab === 'schedule' && (
               <div className="tab-content">
-                <h3>固定直播安排</h3>
+                <h3>时段活动池（每天随机掉落）</h3>
                 <div className="add-form">
                   <h4>添加新安排</h4>
                   <div className="form-row">
                     <input
                       type="text"
-                      placeholder="星期（如：周三）"
+                      placeholder="适用范围（如：每天 / 周三）"
                       value={newSchedule.day}
                       onChange={e => setNewSchedule({ ...newSchedule, day: e.target.value })}
                     />
                     <input
                       type="text"
-                      placeholder="时间（如：21:00 - 23:00）"
+                      placeholder="时间（填：13:00 - 15:00 / 16:00 - 18:00 / 20:00 - 21:00）"
                       value={newSchedule.time}
                       onChange={e => setNewSchedule({ ...newSchedule, time: e.target.value })}
                     />

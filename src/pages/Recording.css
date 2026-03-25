@@ -1,0 +1,62 @@
+.recording-page {
+  min-height: 100vh;
+  padding-bottom: 3rem;
+}
+
+.recording-header {
+  padding: 3rem 0 2rem;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(91, 141, 239, 0.1) 0%, transparent 100%);
+}
+
+.recording-main {
+  padding: 2.5rem 0 3rem;
+}
+
+.recording-main .container {
+  display: flex;
+  justify-content: center;
+}
+
+.recording-card {
+  width: 100%;
+  max-width: 680px;
+  background: rgba(26, 26, 36, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  text-decoration: none;
+  transition: var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.recording-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--color-accent-blue);
+  box-shadow: 0 10px 30px rgba(91, 141, 239, 0.15);
+  background: rgba(26, 26, 36, 0.7);
+}
+
+.recording-card__title {
+  font-family: var(--font-serif);
+  font-size: 1.6rem;
+  color: var(--color-accent-gold);
+}
+
+.recording-card__hint {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+  .recording-header {
+    padding: 2rem 0 1.5rem;
+  }
+
+  .recording-card {
+    padding: 1.5rem;
+  }
+}
+

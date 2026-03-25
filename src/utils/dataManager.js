@@ -19,9 +19,16 @@ const defaultData = {
     { id: 3, title: '粉丝点歌夜', date: '下周六', time: '20:00', platform: 'douyin', status: '预告' }
   ],
   regularSchedule: [
-    { id: 1, day: '周三', time: '21:00 - 23:00', activity: '新歌分享会' },
-    { id: 2, day: '周六', time: '20:00 - 22:00', activity: '周末音乐会' },
-    { id: 3, day: '周日', time: '15:00 - 17:00', activity: '午后茶话会' }
+    // 每天三个固定时段：13-15 / 16-18 / 20-21（用于 Live 页随机掉落）
+    { id: 1, day: '每天', time: '13:00 - 15:00', activity: '午后歌声相伴' },
+    { id: 2, day: '每天', time: '13:00 - 15:00', activity: '咖啡与旋律' },
+    { id: 3, day: '每天', time: '13:00 - 15:00', activity: '阳光小调' },
+    { id: 4, day: '每天', time: '16:00 - 18:00', activity: '傍晚治愈电台' },
+    { id: 5, day: '每天', time: '16:00 - 18:00', activity: '暖风耳语' },
+    { id: 6, day: '每天', time: '16:00 - 18:00', activity: '晚霞合唱' },
+    { id: 7, day: '每天', time: '20:00 - 21:00', activity: '晚间心动专场' },
+    { id: 8, day: '每天', time: '20:00 - 21:00', activity: '星光点歌夜' },
+    { id: 9, day: '每天', time: '20:00 - 21:00', activity: '月色合奏' },
   ],
   aboutIntro: {
     title: '关于小意OVO',

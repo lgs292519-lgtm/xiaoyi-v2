@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { FiMusic, FiShoppingBag, FiRadio, FiUser, FiMessageSquare } from 'react-icons/fi'
+import { FiMusic, FiRadio, FiUser, FiMessageSquare, FiVideo } from 'react-icons/fi'
 import dataManager from '../utils/dataManager'
 import './Navbar.css'
 
@@ -87,7 +87,7 @@ const Navbar = () => {
   const navItems = [
     { path: '/', label: '首页', icon: <FiUser /> },
     { path: '/playlist', label: '歌单', icon: <FiMusic /> },
-    { path: '/goods', label: '周边', icon: <FiShoppingBag /> },
+    { path: '/recording', label: '录屏', icon: <FiVideo /> },
     { path: '/live', label: '直播', icon: <FiRadio /> },
     { path: '/cotton-candy', label: '棉花糖', icon: <FiMessageSquare /> },
     { path: '/about', label: '关于', icon: <FiUser /> },
