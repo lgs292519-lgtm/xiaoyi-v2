@@ -239,7 +239,7 @@ async function fetchRoomStatus({ liveId, roomId, ua, ttwid, acNonce }) {
   return { room_status, nickname, title, avatar_url }
 }
 
-export async function onRequestGet({ request }) {
+async function onRequestGet({ request }) {
   const url = new URL(request.url)
   const liveId = (url.searchParams.get("live_id") || "49330409995").trim()
 
@@ -292,5 +292,10 @@ export async function onRequestGet({ request }) {
       { status: 500 }
     )
   }
+}
+
+// Fallback for runtimes that don't pick up verb-specific handlers.
+export async function onRequest(context) {
+  return onRequestGet({ request: context.request })
 }
 
