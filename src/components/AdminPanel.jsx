@@ -181,7 +181,10 @@ const AdminPanel = ({ onClose }) => {
 
   const handleDeleteCottonMessage = async (id) => {
     const ok = await dataManager.deleteCottonCandyMessage(id);
-    if (!ok) return;
+    if (!ok) {
+      showSaveStatus('只能删除自己的棉花糖留言', false);
+      return;
+    }
     const list = await dataManager.getCottonCandyMessages();
     setCottonMessages(list || []);
     showSaveStatus('棉花糖留言已删除');

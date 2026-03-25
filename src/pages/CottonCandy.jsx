@@ -38,7 +38,10 @@ const CottonCandy = () => {
 
   const handleDelete = async (id) => {
     const ok = await dataManager.deleteCottonCandyMessage(id)
-    if (!ok) return
+    if (!ok) {
+      window.alert('只能删除自己的棉花糖留言')
+      return
+    }
     refresh()
   }
 

@@ -31,10 +31,34 @@ export async function onRequest(context) {
     )
   }
 
+  // 确保表结构包含 authorKey（用于“只能删除自己的留言”）
+  const ensureTables = async () => {
+    await db
+      .prepare(
+        `CREATE TABLE IF NOT EXISTS cotton_candy_messages (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          nickname TEXT NOT NULL,
+          content TEXT NOT NULL,
+          createdAt TEXT NOT NULL,
+          authorKey TEXT
+        )`
+      )
+      .run()
+
+    // 兼容旧表（可能没有 authorKey 列）
+    try {
+      await db.prepare(`ALTER TABLE cotton_candy_messages ADD COLUMN authorKey TEXT`).run()
+    } catch {
+      // 列已存在或 ALTER 不支持则忽略
+    }
+  }
+
+  await ensureTables()
+
   if (method === 'GET') {
     const rows = await db
       .prepare(
-        `SELECT id, nickname, content, createdAt
+        `SELECT id, nickname, content, createdAt, authorKey
          FROM cotton_candy_messages
          ORDER BY datetime(createdAt) DESC
          LIMIT 200`
@@ -47,16 +71,17 @@ export async function onRequest(context) {
     const body = await request.json().catch(() => ({}))
     const nickname = safeText(body.nickname, 20) || '匿名'
     const content = safeText(body.content, 800)
+    const authorKey = safeText(body.authorKey, 128) || ''
     if (!content) return json({ ok: false, error: 'content required' }, { status: 400 })
 
     const createdAt = new Date().toISOString()
     // D1 参数化插入
     const res = await db
       .prepare(
-        `INSERT INTO cotton_candy_messages (nickname, content, createdAt)
-         VALUES (?, ?, ?)`
+        `INSERT INTO cotton_candy_messages (nickname, content, createdAt, authorKey)
+         VALUES (?, ?, ?, ?)`
       )
-      .bind(nickname, content, createdAt)
+      .bind(nickname, content, createdAt, authorKey)
       .run()
 
     // D1 返回 lastRowId 不同版本略有差异，这里用简单查询取最后插入
@@ -75,7 +100,21 @@ export async function onRequest(context) {
   if (method === 'DELETE') {
     const body = await request.json().catch(() => ({}))
     const id = body.id
+    const authorKey = safeText(body.authorKey, 128) || ''
     if (!id) return json({ ok: false, error: 'id required' }, { status: 400 })
+
+    const row = await db
+      .prepare(`SELECT id, authorKey FROM cotton_candy_messages WHERE id = ?`)
+      .bind(id)
+      .first()
+
+    if (!row) return json({ ok: false, error: 'not found' }, { status: 404 })
+
+    // authorKey 不匹配：禁止删除（实现“只能删除自己的留言”）
+    const storedKey = row.authorKey || ''
+    if (storedKey !== authorKey) {
+      return json({ ok: false, error: 'forbidden' }, { status: 403 })
+    }
 
     await db.prepare(`DELETE FROM cotton_candy_messages WHERE id = ?`).bind(id).run()
     return json({ ok: true })

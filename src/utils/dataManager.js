@@ -209,6 +209,20 @@ export const updateHeaderText = (text) => {
 // POST   /api/cotton-candy/clear
 const API_BASE = '' // 同域调用（/pages.dev / 自定义域都适配）
 
+const COTTON_USER_KEY_STORAGE = 'xiaoyi_cotton_user_key'
+const getCottonUserKey = () => {
+  try {
+    const existing = localStorage.getItem(COTTON_USER_KEY_STORAGE)
+    if (existing) return existing
+    const v = `${Date.now()}-${Math.random().toString(16).slice(2)}`
+    localStorage.setItem(COTTON_USER_KEY_STORAGE, v)
+    return v
+  } catch {
+    // 兜底：如果 localStorage 不可用，就退化为一次性 key（仅影响“只能删自己的”能力）
+    return `temp-${Date.now()}`
+  }
+}
+
 export const getCottonCandyMessages = async () => {
   const res = await fetch(`${API_BASE}/api/cotton-candy`, { method: 'GET' })
   if (!res.ok) return []
@@ -217,10 +231,11 @@ export const getCottonCandyMessages = async () => {
 }
 
 export const addCottonCandyMessage = async ({ nickname, content }) => {
+  const authorKey = getCottonUserKey()
   const res = await fetch(`${API_BASE}/api/cotton-candy`, {
     method: 'POST',
     headers: { 'content-type': 'application/json; charset=utf-8' },
-    body: JSON.stringify({ nickname, content }),
+    body: JSON.stringify({ nickname, content, authorKey }),
   })
   if (!res.ok) return false
   const data = await res.json().catch(() => ({}))
@@ -228,10 +243,11 @@ export const addCottonCandyMessage = async ({ nickname, content }) => {
 }
 
 export const deleteCottonCandyMessage = async (id) => {
+  const authorKey = getCottonUserKey()
   const res = await fetch(`${API_BASE}/api/cotton-candy`, {
     method: 'DELETE',
     headers: { 'content-type': 'application/json; charset=utf-8' },
-    body: JSON.stringify({ id }),
+    body: JSON.stringify({ id, authorKey }),
   })
   if (!res.ok) return false
   const data = await res.json().catch(() => ({}))
