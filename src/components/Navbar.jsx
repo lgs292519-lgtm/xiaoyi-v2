@@ -87,40 +87,47 @@ const Navbar = () => {
         <Link to="/" className="navbar-logo">
           <span className="logo-avatar">
             {!avatarError ? (
-              <img
-                src={avatarUrl}
-                alt="小意OVO"
-                onError={() => setAvatarError(true)}
-              />
+              <img src={avatarUrl} alt="小意OVO" onError={() => setAvatarError(true)} />
             ) : (
               <span className="logo-fallback">意</span>
             )}
+          </span>
+
+          <span
+            className={`live-status ${douyinLive ? '' : 'live-status--unconfigured'}`}
+            title={
+              douyinLive
+                ? liveBadgeState === 'unknown'
+                  ? '状态未知（稍后自动刷新）'
+                  : isLiveNow
+                    ? liveTitle
+                      ? `开播中：${liveTitle}`
+                      : '开播中'
+                    : '未开播'
+                : '未配置直播间链接'
+            }
+          >
             {douyinLive && isLiveNow ? (
-              <a
-                href={douyinLive}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="live-badge live-badge--link"
-                aria-label="开播中，点击进入直播间"
-                title={liveTitle ? `开播中：${liveTitle}` : '开播中，点击进入直播间'}
-              >
-                开播中
-              </a>
+              <>
+                <span className="live-status__text">开播中</span>
+                <a
+                  href={douyinLive}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="live-status__btn"
+                  aria-label="进入直播间"
+                  title={liveTitle ? `进入直播间：${liveTitle}` : '进入直播间'}
+                >
+                  进入直播间
+                </a>
+              </>
             ) : (
-              <span
-                className={`live-badge ${douyinLive ? 'live-badge--off' : ''}`}
-                title={
-                  douyinLive
-                    ? liveBadgeState === 'unknown'
-                      ? '状态未知（稍后自动刷新）'
-                      : '未开播'
-                    : '未配置直播间链接'
-                }
-              >
+              <span className="live-status__text live-status__text--off">
                 {douyinLive ? (liveBadgeState === 'unknown' ? '检测中' : '未开播') : '未配置'}
               </span>
             )}
           </span>
+
           <span className="logo-text">小意OVO</span>
         </Link>
 
