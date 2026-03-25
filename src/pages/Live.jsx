@@ -86,9 +86,25 @@ const Live = () => {
   const [data, setData] = useState(null);
   const [nowTick, setNowTick] = useState(Date.now());
 
-  useEffect(() => {
+  const loadData = () => {
     const adminData = dataManager.getData();
     setData(adminData);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // 当管理界面更新 localStorage 后，Live 页需要同步刷新
+  useEffect(() => {
+    const onUpdate = () => loadData();
+    window.addEventListener('xiaoyi-data-updated', onUpdate);
+    // 兼容多 Tab 场景
+    window.addEventListener('storage', onUpdate);
+    return () => {
+      window.removeEventListener('xiaoyi-data-updated', onUpdate);
+      window.removeEventListener('storage', onUpdate);
+    };
   }, []);
 
   useEffect(() => {

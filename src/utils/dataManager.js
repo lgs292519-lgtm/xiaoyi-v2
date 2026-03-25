@@ -106,6 +106,10 @@ export const getData = () => {
 export const saveData = (data) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    // 通知同一页面其它模块（如 Live 页）立即刷新
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('xiaoyi-data-updated'))
+    }
     return true;
   } catch (error) {
     console.error('保存数据失败:', error);
