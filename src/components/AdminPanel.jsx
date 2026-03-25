@@ -4,6 +4,10 @@ import dataManager from '../utils/dataManager';
 import './AdminPanel.css';
 
 const AdminPanel = ({ onClose }) => {
+  const ADMIN_PASSWORD = 'xiaoyi2429'
+  const ADMIN_AUTH_KEY = 'xiaoyi_admin_authed_at'
+  const ADMIN_AUTH_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7天免密
+
   const [activeTab, setActiveTab] = useState('songs');
   const [data, setData] = useState({});
   const [songs, setSongs] = useState([]);
@@ -179,10 +183,20 @@ const AdminPanel = ({ onClose }) => {
     showSaveStatus('欢迎页文字已保存');
   };
 
+  const isAdminAuthed = () => {
+    try {
+      const raw = localStorage.getItem(ADMIN_AUTH_KEY)
+      const ts = raw ? Date.parse(raw) : NaN
+      return Number.isFinite(ts) && Date.now() - ts < ADMIN_AUTH_TTL_MS
+    } catch {
+      return false
+    }
+  }
+
   const handleDeleteCottonMessage = async (id) => {
-    const ok = await dataManager.deleteCottonCandyMessage(id);
+    const ok = await dataManager.deleteCottonCandyMessage(id, isAdminAuthed() ? { adminPass: ADMIN_PASSWORD } : {})
     if (!ok) {
-      showSaveStatus('只能删除自己的棉花糖留言', false);
+      showSaveStatus('删除失败（请确认管理员权限）', false);
       return;
     }
     const list = await dataManager.getCottonCandyMessages();

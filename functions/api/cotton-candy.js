@@ -101,6 +101,8 @@ export async function onRequest(context) {
     const body = await request.json().catch(() => ({}))
     const id = body.id
     const authorKey = safeText(body.authorKey, 128) || ''
+    const adminPass = safeText(body.adminPass, 128) || ''
+    const ADMIN_PASSWORD = 'xiaoyi2429'
     if (!id) return json({ ok: false, error: 'id required' }, { status: 400 })
 
     const row = await db
@@ -109,6 +111,12 @@ export async function onRequest(context) {
       .first()
 
     if (!row) return json({ ok: false, error: 'not found' }, { status: 404 })
+
+    // 管理员：跳过 authorKey 校验，允许删除任意留言
+    if (adminPass === ADMIN_PASSWORD) {
+      await db.prepare(`DELETE FROM cotton_candy_messages WHERE id = ?`).bind(id).run()
+      return json({ ok: true })
+    }
 
     // authorKey 不匹配：禁止删除（实现“只能删除自己的留言”）
     const storedKey = row.authorKey || ''

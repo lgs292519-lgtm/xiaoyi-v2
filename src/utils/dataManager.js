@@ -324,12 +324,13 @@ export const addCottonCandyMessage = async ({ nickname, content }) => {
   return data?.ok === true
 }
 
-export const deleteCottonCandyMessage = async (id) => {
+export const deleteCottonCandyMessage = async (id, options = {}) => {
   const authorKey = getCottonUserKey()
+  const adminPass = options?.adminPass
   const res = await fetch(`${API_BASE}/api/cotton-candy`, {
     method: 'DELETE',
     headers: { 'content-type': 'application/json; charset=utf-8' },
-    body: JSON.stringify({ id, authorKey }),
+    body: JSON.stringify({ id, authorKey, ...(adminPass ? { adminPass } : {}) }),
   })
   if (!res.ok) return false
   const data = await res.json().catch(() => ({}))
