@@ -84,6 +84,18 @@ const Navbar = () => {
     return () => clearInterval(t)
   }, [])
 
+  // 当管理端保存数据（或从服务端同步到本地）时，刷新导航栏信息
+  useEffect(() => {
+    const refreshFromData = () => {
+      const d = dataManager.getData()
+      const initialAvatarUrl = d?.avatarUrl || AVATAR_SRC
+      setAvatarUrl(initialAvatarUrl)
+      setDouyinLive(d?.contact?.douyinLive || '')
+    }
+    window.addEventListener('xiaoyi-data-updated', refreshFromData)
+    return () => window.removeEventListener('xiaoyi-data-updated', refreshFromData)
+  }, [])
+
   const navItems = [
     { path: '/', label: '首页', icon: <FiUser /> },
     { path: '/playlist', label: '歌单', icon: <FiMusic /> },

@@ -48,7 +48,11 @@ const About = () => {
     const refresh = () => setData(dataManager.getData());
     refresh();
     window.addEventListener('xiaoyi-avatar-updated', refresh);
-    return () => window.removeEventListener('xiaoyi-avatar-updated', refresh);
+    window.addEventListener('xiaoyi-data-updated', refresh);
+    return () => {
+      window.removeEventListener('xiaoyi-avatar-updated', refresh)
+      window.removeEventListener('xiaoyi-data-updated', refresh)
+    }
   }, []);
 
   useEffect(() => {

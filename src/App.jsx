@@ -20,8 +20,17 @@ function App() {
   const [adminData, setAdminData] = useState(null)
 
   useEffect(() => {
-    const data = dataManager.getData();
-    setAdminData(data);
+    const data = dataManager.getData()
+    setAdminData(data)
+
+    // 跨设备同步：首次拉取服务端管理数据到本地
+    dataManager.syncAdminDataFromServer?.().then(() => {
+      setAdminData(dataManager.getData())
+    })
+
+    const onUpdated = () => setAdminData(dataManager.getData())
+    window.addEventListener('xiaoyi-data-updated', onUpdated)
+    return () => window.removeEventListener('xiaoyi-data-updated', onUpdated)
   }, []);
 
   const startMusic = () => {

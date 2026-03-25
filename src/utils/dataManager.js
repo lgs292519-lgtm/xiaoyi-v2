@@ -108,12 +108,39 @@ export const saveData = (data) => {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('xiaoyi-data-updated'))
     }
+    // 跨设备同步：异步写入服务端（失败不影响本地体验）
+    if (typeof fetch === 'function') {
+      fetch(`${API_BASE}/api/admin-data`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json; charset=utf-8' },
+        body: JSON.stringify({ data }),
+      }).catch(() => {})
+    }
     return true;
   } catch (error) {
     console.error('保存数据失败:', error);
     return false;
   }
 };
+
+// 从服务端同步管理数据到本地（跨设备拉取）
+export const syncAdminDataFromServer = async () => {
+  if (typeof fetch !== 'function') return false
+  try {
+    const res = await fetch(`${API_BASE}/api/admin-data`, { method: 'GET' })
+    if (!res.ok) return false
+    const payload = await res.json().catch(() => ({}))
+    const serverData = payload?.data
+    if (!serverData) return false
+
+    // 只写本地，不触发 saveData 的 POST，避免写回死循环
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(serverData))
+    window.dispatchEvent(new Event('xiaoyi-data-updated'))
+    return true
+  } catch {
+    return false
+  }
+}
 
 // 更新联系方式
 export const updateContact = (contact) => {
@@ -126,14 +153,7 @@ export const updateContact = (contact) => {
 export const updateUpcomingLives = (lives) => {
   const data = getData();
   data.upcomingLives = lives;
-  const ok = saveData(data);
-  // 同步到服务器端，保证跨设备一致性
-  try {
-    void syncUpcomingLivesToServer(lives);
-  } catch {
-    // ignore
-  }
-  return ok;
+  return saveData(data);
 };
 
 // 添加直播预告
@@ -145,40 +165,21 @@ export const addUpcomingLive = (live) => {
     status: live.status || '预告'
   };
   data.upcomingLives.push(newLive);
-  const ok = saveData(data);
-  try {
-    void syncUpcomingLivesToServer(data.upcomingLives);
-  } catch {
-    // ignore
-  }
-  return ok;
+  return saveData(data);
 };
 
 // 删除直播预告
 export const deleteUpcomingLive = (id) => {
   const data = getData();
   data.upcomingLives = data.upcomingLives.filter(live => live.id !== id);
-  const ok = saveData(data);
-  try {
-    void syncUpcomingLivesToServer(data.upcomingLives);
-  } catch {
-    // ignore
-  }
-  return ok;
+  return saveData(data);
 };
 
 // 更新固定直播安排
 export const updateRegularSchedule = (schedule) => {
   const data = getData();
   data.regularSchedule = schedule;
-  const ok = saveData(data);
-  // 同步到服务器端，保证跨设备一致性
-  try {
-    void syncRegularScheduleToServer(schedule);
-  } catch {
-    // ignore
-  }
-  return ok;
+  return saveData(data);
 };
 
 // 添加固定直播安排
@@ -189,26 +190,14 @@ export const addRegularSchedule = (item) => {
     ...item
   };
   data.regularSchedule.push(newItem);
-  const ok = saveData(data);
-  try {
-    void syncRegularScheduleToServer(data.regularSchedule);
-  } catch {
-    // ignore
-  }
-  return ok;
+  return saveData(data);
 };
 
 // 删除固定直播安排
 export const deleteRegularSchedule = (id) => {
   const data = getData();
   data.regularSchedule = data.regularSchedule.filter(item => item.id !== id);
-  const ok = saveData(data);
-  try {
-    void syncRegularScheduleToServer(data.regularSchedule);
-  } catch {
-    // ignore
-  }
-  return ok;
+  return saveData(data);
 };
 
 // 更新头像
@@ -239,59 +228,13 @@ export const updateHeaderText = (text) => {
   return saveData(data);
 };
 
-// ===== 管理端（跨设备）持久化：固定安排 / 直播预告 =====
-// 说明：因为当前“管理数据”原本只存 localStorage，跨设备不会同步。
-// 这里新增服务端接口，把 upcomingLives / regularSchedule 同步到 D1。
-
-const API_BASE = '' // 同域调用（/pages.dev / 自定义域都适配）
-
-const getApiJson = async (url, options) => {
-  const res = await fetch(url, options)
-  if (!res.ok) return null
-  return res.json().catch(() => ({}))
-}
-
-const syncRegularScheduleToServer = async (schedule) => {
-  if (!Array.isArray(schedule)) return false
-  const payload = { regularSchedule: schedule }
-  const res = await getApiJson(`${API_BASE}/api/xiaoyi-admin/regular-schedule`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json; charset=utf-8' },
-    body: JSON.stringify(payload),
-  })
-  return res?.ok === true
-}
-
-const syncUpcomingLivesToServer = async (lives) => {
-  if (!Array.isArray(lives)) return false
-  const payload = { upcomingLives: lives }
-  const res = await getApiJson(`${API_BASE}/api/xiaoyi-admin/upcoming-lives`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json; charset=utf-8' },
-    body: JSON.stringify(payload),
-  })
-  return res?.ok === true
-}
-
-export const getRegularScheduleFromServer = async () => {
-  const res = await getApiJson(`${API_BASE}/api/xiaoyi-admin/regular-schedule`, { method: 'GET' })
-  if (!res) return []
-  return Array.isArray(res?.regularSchedule) ? res.regularSchedule : []
-}
-
-export const getUpcomingLivesFromServer = async () => {
-  const res = await getApiJson(`${API_BASE}/api/xiaoyi-admin/upcoming-lives`, { method: 'GET' })
-  if (!res) return []
-  return Array.isArray(res?.upcomingLives) ? res.upcomingLives : []
-}
-
 // ===== 棉花糖留言 =====
 // 所有设备共享：通过 Cloudflare Pages Functions 接口读写
 // GET    /api/cotton-candy
 // POST   /api/cotton-candy          { nickname, content }
 // DELETE /api/cotton-candy (json)  { id }
 // POST   /api/cotton-candy/clear
-// API_BASE 已在上面定义
+const API_BASE = '' // 同域调用（/pages.dev / 自定义域都适配）
 
 const COTTON_USER_KEY_STORAGE = 'xiaoyi_cotton_user_key'
 const getCottonUserKey = () => {
@@ -424,8 +367,6 @@ export default {
   updateRegularSchedule,
   addRegularSchedule,
   deleteRegularSchedule,
-  getRegularScheduleFromServer,
-  getUpcomingLivesFromServer,
   updateAvatar,
   updateAboutIntro,
   updateProfileInfo,
@@ -439,5 +380,6 @@ export default {
   voteAboutExtraTag,
   suggestAboutTag,
   promoteAboutExtraTag,
+  syncAdminDataFromServer,
   resetData
 };

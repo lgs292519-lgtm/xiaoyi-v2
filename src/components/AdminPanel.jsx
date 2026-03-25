@@ -40,22 +40,6 @@ const AdminPanel = ({ onClose }) => {
       setAboutFixedTags(Array.isArray(fixed) ? fixed : []);
       setAboutExtraTags(Array.isArray(extras) ? extras : []);
     });
-
-    // 跨设备一致性：覆盖 upcomingLives / regularSchedule 为服务器端数据
-    Promise.all([dataManager.getUpcomingLivesFromServer(), dataManager.getRegularScheduleFromServer()])
-      .then(([serverLives, serverSchedule]) => {
-        if (Array.isArray(serverLives) && serverLives.length) {
-          setUpcomingLives(serverLives)
-          setData((prev) => ({ ...prev, upcomingLives: serverLives }))
-        }
-        if (Array.isArray(serverSchedule) && serverSchedule.length) {
-          setRegularSchedule(serverSchedule)
-          setData((prev) => ({ ...prev, regularSchedule: serverSchedule }))
-        }
-      })
-      .catch(() => {
-        // ignore: 服务器端读取失败则继续使用 localStorage
-      })
   }, []);
 
   const showSaveStatus = (message, isSuccess = true) => {
@@ -79,19 +63,6 @@ const AdminPanel = ({ onClose }) => {
     setRegularSchedule(fresh.regularSchedule || []);
     setAboutIntro(fresh.aboutIntro || {});
     setHeaderText(fresh.headerText || {});
-
-    // 同时尝试拉取服务器端数据，保证在多设备场景下展示一致
-    Promise.all([dataManager.getUpcomingLivesFromServer(), dataManager.getRegularScheduleFromServer()])
-      .then(([serverLives, serverSchedule]) => {
-        if (Array.isArray(serverLives)) setUpcomingLives(serverLives)
-        if (Array.isArray(serverSchedule)) setRegularSchedule(serverSchedule)
-        setData((prev) => ({
-          ...prev,
-          upcomingLives: Array.isArray(serverLives) ? serverLives : prev.upcomingLives,
-          regularSchedule: Array.isArray(serverSchedule) ? serverSchedule : prev.regularSchedule,
-        }))
-      })
-      .catch(() => {})
 
     showSaveStatus('已重置为默认数据');
   };
