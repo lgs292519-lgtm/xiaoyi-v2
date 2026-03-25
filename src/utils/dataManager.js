@@ -92,7 +92,8 @@ export const getData = () => {
       return merged;
     }
     // 首次使用，初始化默认数据
-    saveData(defaultData);
+    // 关键：初始化默认数据时不要写回服务器，避免把“后台删除后的新配置”覆盖成默认值。
+    saveData(defaultData, { skipServerSync: true, markSyncNeeded: false, setLastLocalSaveAt: false });
     return defaultData;
   } catch (error) {
     console.error('获取数据失败:', error);
@@ -101,23 +102,33 @@ export const getData = () => {
 };
 
 // 保存所有数据
-export const saveData = (data) => {
+export const saveData = (data, options = {}) => {
+  const {
+    skipServerSync = false,
+    // 是否把本地标记为“需要同步到服务端”
+    markSyncNeeded = true,
+    // 是否更新“本地最后保存时间戳”（用于冲突解决）
+    setLastLocalSaveAt = true,
+  } = options;
+
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     // 用于避免服务器旧数据覆盖你在本地刚删除/修改的数据
-    localStorage.setItem(ADMIN_LAST_LOCAL_SAVE_AT, String(Date.now()))
-    localStorage.setItem(ADMIN_SYNC_NEEDED, '1')
+    if (setLastLocalSaveAt) localStorage.setItem(ADMIN_LAST_LOCAL_SAVE_AT, String(Date.now()))
+    localStorage.setItem(ADMIN_SYNC_NEEDED, markSyncNeeded ? '1' : '0')
     // 通知同一页面其它模块（如 Live 页）立即刷新
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('xiaoyi-data-updated'))
     }
 
-    // 跨设备同步：异步写入服务端（失败不影响本地体验，但会在下一次轮询重试）
-    persistAdminDataToServer(data)
-      .then((ok) => {
-        if (ok) localStorage.setItem(ADMIN_SYNC_NEEDED, '0')
-      })
-      .catch(() => {})
+    if (!skipServerSync) {
+      // 跨设备同步：异步写入服务端（失败不影响本地体验，但会在下一次轮询重试）
+      persistAdminDataToServer(data)
+        .then((ok) => {
+          if (ok) localStorage.setItem(ADMIN_SYNC_NEEDED, '0')
+        })
+        .catch(() => {})
+    }
 
     return true;
   } catch (error) {
