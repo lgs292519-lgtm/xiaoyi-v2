@@ -80,7 +80,7 @@ const About = () => {
             </div>
             <div className="profile-info">
               <h1>小意OVO</h1>
-              <p className="profile-tagline">{profileInfo.tagline || '用歌声治愈每一颗心灵'}</p>
+              <p className="profile-tagline">{profileInfo.tagline || aboutIntro.tagline || '用歌声治愈每一颗心灵'}</p>
               <div className="profile-stats">
                 <div className="stat-item">
                   <span className="stat-number">{profileInfo.stats?.songs || '140+'}</span>
@@ -115,40 +115,53 @@ const About = () => {
             {fixedTags.map((tag) => {
               const isVoted = Boolean(votedMap[tag.id]);
               return (
-                <button
-                  type="button"
+                <div
                   key={tag.id}
                   className={`tag-item ${isVoted ? 'tag-item--voted' : ''}`}
-                  onClick={async () => {
-                    if (isVoted) return;
-                    if (String(tag.id).startsWith('default-')) {
-                      setTagHint('当前标签数据未连接，稍后再试。');
-                      setTimeout(() => setTagHint(''), 2500);
-                      return;
-                    }
-                    // 前端限流：同一设备/浏览器对同一标签只点赞一次
-                    const next = { ...votedMap, [tag.id]: true };
-                    setVotedMap(next);
-                    localStorage.setItem(ABOUT_VOTED_KEY, JSON.stringify(next));
-
-                    const updated = await dataManager.voteAboutTag(tag.id);
-                    if (updated?.likeCount !== undefined) {
-                      setFixedTags((prev) =>
-                        prev.map((t) => (t.id === tag.id ? { ...t, likeCount: updated.likeCount } : t))
-                      );
-                    } else {
-                      // 兜底：如果接口失败就不更新数字
-                    }
-                  }}
-                  aria-label={`点赞 ${tag.name}`}
-                  disabled={isVoted}
                 >
                   <span className="tag-name">{tag.name}</span>
-                  <span className="tag-like">
-                    <FiHeart className="tag-like-icon" />
+                  <button
+                    type="button"
+                    className="tag-like-btn"
+                    aria-label={`${isVoted ? '取消点赞' : '点赞'} ${tag.name}`}
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      const delta = isVoted ? -1 : 1;
+                      const prevMap = { ...votedMap };
+                      if (String(tag.id).startsWith('default-')) {
+                        setTagHint('当前标签数据未连接，稍后再试。');
+                        setTimeout(() => setTagHint(''), 2500);
+                        return;
+                      }
+
+                      // 本地先更新，保证体验（失败会回滚）
+                      const nextMap = { ...votedMap };
+                      if (delta === 1) nextMap[tag.id] = true;
+                      else delete nextMap[tag.id];
+                      setVotedMap(nextMap);
+                      localStorage.setItem(ABOUT_VOTED_KEY, JSON.stringify(nextMap));
+
+                      try {
+                        const updated = await dataManager.voteAboutTag(tag.id, delta);
+                        if (updated?.likeCount !== undefined) {
+                          setFixedTags((prev) =>
+                            prev.map((t) => (t.id === tag.id ? { ...t, likeCount: updated.likeCount } : t))
+                          );
+                        } else {
+                          // 接口失败回滚
+                          setVotedMap(prevMap);
+                          localStorage.setItem(ABOUT_VOTED_KEY, JSON.stringify(prevMap));
+                        }
+                      } catch {
+                        setVotedMap(prevMap);
+                        localStorage.setItem(ABOUT_VOTED_KEY, JSON.stringify(prevMap));
+                      }
+                    }}
+                  >
+                    <FiHeart className={`tag-like-icon ${isVoted ? 'tag-like-icon--voted' : ''}`} />
                     {tag.likeCount ?? 0}
-                  </span>
-                </button>
+                  </button>
+                </div>
               );
             })}
           </div>

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { FiSearch, FiMusic } from 'react-icons/fi'
 import songData from '../data/songs.json'
 import './Playlist.css'
@@ -6,8 +7,14 @@ import './Playlist.css'
 const Playlist = () => {
   const [currentGenre, setCurrentGenre] = useState('全部')
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchParams] = useSearchParams()
 
   const genres = ['全部', '国风仙侠', '治愈抒情', '情绪共鸣', '甜系元气']
+
+  useEffect(() => {
+    const g = searchParams.get('genre')
+    if (g && genres.includes(g)) setCurrentGenre(g)
+  }, [searchParams])
 
   const filteredSongs = songData.filter(song => {
     const matchGenre = currentGenre === '全部' || song.genre === currentGenre

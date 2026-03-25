@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { FiMusic } from 'react-icons/fi'
 import './Home.css'
 
 const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const touchStartRef = useRef({ x: 0, y: 0, active: false })
   
   const slides = [
     { title: '国风仙侠', subtitle: '千古风华，侠骨柔情', tag: '唯美古风' },
@@ -20,10 +21,39 @@ const Home = () => {
     return () => clearInterval(timer)
   }, [slides.length])
 
+  const handleTouchStart = (e) => {
+    const t = e.touches?.[0]
+    if (!t) return
+    touchStartRef.current = { x: t.clientX, y: t.clientY, active: true }
+  }
+
+  const handleTouchEnd = (e) => {
+    const start = touchStartRef.current
+    if (!start.active) return
+    const t = e.changedTouches?.[0]
+    if (!t) return
+    const dx = t.clientX - start.x
+    const dy = t.clientY - start.y
+
+    // 防止误触：需要水平滑动明显、竖直位移较小
+    if (Math.abs(dx) > 50 && Math.abs(dy) < 120) {
+      if (dx < 0) {
+        setCurrentSlide((prev) => (prev + 1) % slides.length)
+      } else {
+        setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
+      }
+    }
+    touchStartRef.current.active = false
+  }
+
   return (
     <div className="home">
       {/* 轮播区域 */}
-      <section className="hero-section">
+      <section
+        className="hero-section"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <div className="carousel">
           {slides.map((slide, index) => (
             <div
@@ -35,7 +65,7 @@ const Home = () => {
                 <span className="slide-tag">{slide.tag}</span>
                 <h1 className="slide-title">{slide.title}</h1>
                 <p className="slide-subtitle">{slide.subtitle}</p>
-                <Link to="/playlist" className="slide-btn">
+                <Link to={`/playlist?genre=${encodeURIComponent(slide.title)}`} className="slide-btn">
                   <FiMusic /> 查看歌单
                 </Link>
               </div>

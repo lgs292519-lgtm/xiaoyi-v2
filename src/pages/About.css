@@ -125,7 +125,6 @@
   background: rgba(26, 26, 36, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--color-text-primary);
-  cursor: pointer;
   transition: all 0.2s ease;
   min-width: 125px;
 }
@@ -135,11 +134,6 @@
   border-color: rgba(224, 192, 151, 0.5);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
   background: rgba(26, 26, 36, 0.65);
-}
-
-.tag-item:disabled {
-  cursor: not-allowed;
-  opacity: 0.75;
 }
 
 .tag-item--voted {
@@ -163,6 +157,23 @@
 
 .tag-like-icon {
   color: var(--color-accent-gold);
+}
+
+.tag-like-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: inherit;
+  padding: 0;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.tag-like-icon--voted {
+  filter: drop-shadow(0 0 10px rgba(224, 192, 151, 0.25));
 }
 
 .tag-suggest {

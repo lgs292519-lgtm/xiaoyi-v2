@@ -30,11 +30,15 @@ const defaultData = {
   aboutIntro: {
     title: '关于小意OVO',
     content: [
-      '对的对的，别怕，天塌了我是顶天立地的人。'
+      '大家好，我是小意OVO。一个热爱音乐、热爱生活的普通人。',
+      '从小就喜欢听歌、唱歌，音乐是我生活中不可或缺的一部分。',
+      '希望用我的歌声，能够温暖每一个聆听者的心。',
+      '这里是我的个人主页，收录了我喜欢的歌曲，也分享着我的音乐故事。',
+      '如果某首歌刚好触动你的心弦，那就是我最开心的时刻。'
     ]
   },
   profileInfo: {
-    tagline: '用歌声治愈每一颗心灵',
+    tagline: '对的对的，别怕，天塌了我是顶天立地的人。',
     stats: {
       songs: '140+',
       love: '∞'
@@ -53,7 +57,7 @@ export const getData = () => {
     if (stored) {
       const parsed = JSON.parse(stored);
       // 兼容旧数据：确保新字段存在
-      return {
+      const merged = {
         ...defaultData,
         ...parsed,
         cottonCandy: {
@@ -61,6 +65,21 @@ export const getData = () => {
           ...(parsed.cottonCandy || {}),
         },
       };
+
+      // 兼容旧默认内容：之前关于简介可能被替换成“签名句”，这里自动恢复到新默认段落
+      const sig = '对的对的，别怕，天塌了我是顶天立地的人。';
+      if (merged?.profileInfo?.tagline === '用歌声治愈每一颗心灵') {
+        merged.profileInfo.tagline = defaultData.profileInfo.tagline;
+      }
+      if (
+        Array.isArray(merged?.aboutIntro?.content) &&
+        merged.aboutIntro.content.length === 1 &&
+        String(merged.aboutIntro.content[0]).includes('天塌了我是顶天立地的人')
+      ) {
+        merged.aboutIntro.content = defaultData.aboutIntro.content;
+      }
+
+      return merged;
     }
     // 首次使用，初始化默认数据
     saveData(defaultData);
@@ -230,11 +249,11 @@ export const getAboutTags = async () => {
   }
 }
 
-export const voteAboutTag = async (tagId) => {
+export const voteAboutTag = async (tagId, delta = 1) => {
   const res = await fetch(`${API_BASE}/api/about-tags/vote`, {
     method: 'POST',
     headers: { 'content-type': 'application/json; charset=utf-8' },
-    body: JSON.stringify({ tagId }),
+    body: JSON.stringify({ tagId, delta }),
   })
   if (!res.ok) return null
   const data = await res.json().catch(() => ({}))

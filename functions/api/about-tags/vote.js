@@ -62,11 +62,17 @@ export async function onRequest(context) {
 
   const body = await request.json().catch(() => ({}))
   const tagId = body?.tagId
+  const delta = Number(body?.delta ?? 1)
   if (!tagId) return json({ ok: false, error: 'tagId required' }, { status: 400 })
+  const safeDelta = delta === -1 ? -1 : 1
 
   const updated = await db
-    .prepare(`UPDATE about_fixed_tags SET likeCount = likeCount + 1 WHERE id = ?`)
-    .bind(tagId)
+    .prepare(
+      `UPDATE about_fixed_tags
+       SET likeCount = MAX(0, likeCount + ?)
+       WHERE id = ?`
+    )
+    .bind(safeDelta, tagId)
     .run()
 
   // D1 的 run 不一定返回最新 likeCount，这里再查一次
