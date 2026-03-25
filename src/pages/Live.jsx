@@ -14,9 +14,9 @@ const WEEKDAY_TO_CN = {
 };
 
 const SLOT_DEFS = [
-  { key: '13-15', startMin: 13 * 60, endMin: 15 * 60, label: '13-15点', timeDisplay: '13:00 - 15:00' },
-  { key: '16-18', startMin: 16 * 60, endMin: 18 * 60, label: '16-18点', timeDisplay: '16:00 - 18:00' },
-  { key: '20-21', startMin: 20 * 60, endMin: 21 * 60, label: '20-21点', timeDisplay: '20:00 - 21:00' },
+  { key: '13-15', startMin: 13 * 60, endMin: 15 * 60, slotZh: '13-15点', timeRangeDisplay: '13：00-15：00', liveType: '固定' },
+  { key: '16-18', startMin: 16 * 60, endMin: 18 * 60, slotZh: '16-18点', timeRangeDisplay: '16：00-18：00', liveType: '固定' },
+  { key: '20-21', startMin: 20 * 60, endMin: 21 * 60, slotZh: '20-21点', timeRangeDisplay: '20：00-21：00', liveType: '随机' },
 ];
 
 function clampInt(n, { min, max, fallback }) {
@@ -101,8 +101,6 @@ const Live = () => {
   const todayCN = WEEKDAY_TO_CN[now.getDay()];
   const nowMinutes = getNowMinutes(now);
 
-  // 固定三段日程：13-15 / 16-18 / 20-21
-  // “随机掉落”理解为：每段从固定安排池里按日期+时段做一次确定性随机选择。
   const dailySchedule = SLOT_DEFS.map((slot) => {
     const slotPoolAll = (regularSchedule || [])
       .filter((item) => {
@@ -125,12 +123,18 @@ const Live = () => {
       '20-21': '晚间心动专场',
     };
 
-    const activity = pool.length ? selectDeterministic(pool, `${todayISO}-${slot.key}`) : fallbacks[slot.key];
+    // 需求：13-15固定、16-18固定、20-21随机
+    const activity = pool.length
+      ? selectDeterministic(
+        pool,
+        slot.liveType === '随机' ? `${todayISO}-${slot.key}` : `${slot.key}-fixed`
+      )
+      : fallbacks[slot.key];
     return {
       slotKey: slot.key,
       date: todayCN,
-      timeLabel: slot.label,
-      timeDisplay: slot.timeDisplay,
+      timeRangeDisplay: slot.timeRangeDisplay,
+      liveType: slot.liveType,
       title: activity,
     };
   });
@@ -142,8 +146,9 @@ const Live = () => {
       id: `auto-${todayISO}-${slot.key}`,
       title: scheduled?.title || '',
       date: '今天',
-      time: slot.label,
-      timeDisplay: slot.timeDisplay,
+      time: slot.slotZh,
+      timeRangeDisplay: slot.timeRangeDisplay,
+      liveType: slot.liveType,
       platform: 'douyin',
       status: '预告',
       _slotKey: slot.key,
@@ -154,7 +159,6 @@ const Live = () => {
   // 管理界面“即将直播”可自定义增加：这里将手动预告与自动预告合并。
   // 若手动预告属于同一时段且日期是“今天”，则用手动标题覆盖自动标题，避免重复。
   const overrides = new Map();
-  const manualExtras = [];
 
   const todayStartMin = nowMinutes;
   for (const m of upcomingLivesManual) {
@@ -167,11 +171,9 @@ const Live = () => {
     const passed = isToday && startMin !== null && startMin < todayStartMin;
     if (passed) continue;
 
+    // 需求：即将直播只展示今天三个时段，其他日期的手动预告不参与展示。
     if (isToday && manualSlotKey) {
       overrides.set(manualSlotKey, m);
-    } else {
-      // other date (e.g. 下周三) or unknown slot: keep as extra
-      manualExtras.push(m);
     }
   }
 
@@ -185,6 +187,8 @@ const Live = () => {
         title: override.title || auto.title,
         date: override.date || auto.date,
         time: override.time || auto.time,
+        timeRangeDisplay: auto.timeRangeDisplay,
+        liveType: auto.liveType,
         platform: override.platform || auto.platform,
         status: override.status || auto.status,
         _startMin: auto._startMin,
@@ -195,9 +199,7 @@ const Live = () => {
   }
 
   // include manual extras
-  for (const m of manualExtras) {
-    upcomingLives.push(m);
-  }
+  // （不再加入 manualExtras，避免出现“周末歌声相伴/新歌首发专场/粉丝点歌夜”等非今天条目）
 
   // sort by start time for better UX on upcoming-grid
   upcomingLives.sort((a, b) => {
@@ -229,9 +231,14 @@ const Live = () => {
               <div key={live.id} className="upcoming-card">
                 <div className="upcoming-info">
                   <h3>{live.title}</h3>
+                  <span
+                    className={`upcoming-live-type upcoming-live-type--${live.liveType === '固定' ? 'fixed' : 'random'}`}
+                  >
+                    {live.liveType}
+                  </span>
                   <div className="upcoming-meta">
                     <span><FiCalendar /> {live.date}</span>
-                    <span><FiClock /> {live.time}</span>
+                    <span><FiClock /> {live.timeRangeDisplay}</span>
                   </div>
                   <span className="upcoming-platform">{live.platform}</span>
                 </div>
@@ -250,7 +257,7 @@ const Live = () => {
             {dailySchedule.map((item) => (
               <div key={item.slotKey} className="schedule-card">
                 <div className="schedule-content">
-                  <h3>{item.timeLabel}</h3>
+                          <h3>{item.timeRangeDisplay}</h3>
                   <p className="schedule-time">今天</p>
                   <p className="schedule-activity">{item.title}</p>
                 </div>

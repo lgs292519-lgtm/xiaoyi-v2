@@ -13,11 +13,8 @@ const defaultData = {
   cottonCandy: {
     messages: []
   },
-  upcomingLives: [
-    { id: 1, title: '周末歌声相伴', date: '周六', time: '20:00', platform: 'douyin', status: '预告' },
-    { id: 2, title: '新歌首发专场', date: '下周三', time: '21:00', platform: 'douyin', status: '预告' },
-    { id: 3, title: '粉丝点歌夜', date: '下周六', time: '20:00', platform: 'douyin', status: '预告' }
-  ],
+  // 即将直播（仅在“今天”时段内展示；可在管理界面手动添加覆盖自动标题）
+  upcomingLives: [],
   regularSchedule: [
     // 每天三个固定时段：13-15 / 16-18 / 20-21（用于 Live 页随机掉落）
     { id: 1, day: '每天', time: '13:00 - 15:00', activity: '午后歌声相伴' },
