@@ -1,0 +1,345 @@
+.footer {
+  background: rgba(18, 18, 26, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 3rem 0 2rem;
+  margin-top: auto;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.footer-logo {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--color-accent-gold), #d4b896);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  color: var(--color-bg-primary);
+  font-weight: bold;
+}
+
+.footer-name {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  color: var(--color-accent-gold);
+}
+
+.footer-links {
+  display: flex;
+  gap: 2rem;
+}
+
+.footer-links a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: var(--transition-fast);
+}
+
+.footer-links a:hover {
+  color: var(--color-accent-gold);
+}
+
+.footer-social {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.social-label {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.social-icons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.social-link {
+  height: 36px;
+  background: rgba(26, 26, 36, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: 0.75rem;
+  transition: var(--transition-fast);
+  gap: 0.5rem;
+  padding: 0 12px;
+  width: auto;
+}
+
+.douyin-link {
+  background: rgba(254, 44, 85, 0.1);
+  border-color: rgba(254, 44, 85, 0.3);
+  color: #fe2c55;
+}
+
+.douyin-link:hover {
+  background: #fe2c55;
+  border-color: #fe2c55;
+  color: white;
+}
+
+.douyin-link svg {
+  font-size: 14px;
+}
+
+.douyin-link span {
+  font-size: 0.8rem;
+}
+
+.social-link:hover {
+  background: var(--color-accent-gold);
+  border-color: var(--color-accent-gold);
+  color: var(--color-bg-primary);
+}
+
+.footer-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 2rem 0;
+}
+
+.footer-bottom {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footer-bottom p {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.footer-heart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.footer-heart svg {
+  color: var(--color-accent-pink);
+  animation: pulse 1.5s infinite;
+}
+
+/* 密码弹窗样式 */
+.password-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  animation: fadeIn 0.2s ease;
+}
+
+.password-modal {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 20px;
+  width: 90%;
+  max-width: 400px;
+  padding: 2.5rem 2rem;
+  position: relative;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(224, 192, 151, 0.3);
+  animation: scaleIn 0.3s ease;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.password-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.password-close:hover {
+  background: rgba(255, 100, 100, 0.2);
+  color: #ff6b6b;
+}
+
+.password-content {
+  text-align: center;
+}
+
+.password-icon {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, #e0c097, #d4a574);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.password-icon svg {
+  font-size: 2rem;
+  color: #1a1a2e;
+}
+
+.password-content h3 {
+  color: #e0c097;
+  font-size: 1.4rem;
+  font-family: var(--font-serif);
+  margin: 0 0 0.5rem;
+}
+
+.password-hint {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+  margin: 0 0 1.5rem;
+}
+
+.password-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.password-content input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 1rem;
+  text-align: center;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.password-content input:focus {
+  outline: none;
+  border-color: #e0c097;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.password-content input.error {
+  border-color: #ff6b6b;
+  animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-10px); }
+  40%, 80% { transform: translateX(10px); }
+}
+
+.error-text {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  margin: 0;
+  animation: fadeIn 0.2s ease;
+}
+
+.password-submit {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, #e0c097, #d4a574);
+  border: none;
+  border-radius: 12px;
+  color: #1a1a2e;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.password-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(224, 192, 151, 0.4);
+}
+
+/* 页脚管理按钮 */
+.footer-admin-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.footer-admin-btn:hover {
+  color: #e0c097;
+}
+
+.footer-admin-btn svg {
+  color: var(--color-accent-pink);
+}
+
+.footer-links-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .footer-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem 1.5rem;
+  }
+}

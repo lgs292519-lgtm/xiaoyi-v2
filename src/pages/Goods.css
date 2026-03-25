@@ -1,0 +1,219 @@
+.goods-page {
+  min-height: 100vh;
+  padding-bottom: 3rem;
+}
+
+.goods-header {
+  padding: 3rem 0 2rem;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(236, 72, 153, 0.1) 0%, transparent 100%);
+}
+
+.header-desc {
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.goods-content {
+  padding: 2rem 0;
+}
+
+.goods-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.goods-card {
+  background: rgba(26, 26, 36, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: var(--transition-normal);
+}
+
+.goods-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--color-accent-pink);
+  box-shadow: 0 15px 40px rgba(236, 72, 153, 0.15);
+  background: rgba(26, 26, 36, 0.7);
+}
+
+.goods-image {
+  height: 180px;
+  background: linear-gradient(135deg, rgba(18, 18, 26, 0.6), rgba(26, 26, 36, 0.6));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.goods-emoji {
+  font-size: 4rem;
+}
+
+.goods-tag {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+}
+
+.goods-tag.热门 { background: #ef4444; }
+.goods-tag.限定 { background: #8b5cf6; }
+.goods-tag.新品 { background: #10b981; }
+.goods-tag.热销 { background: #f59e0b; }
+.goods-tag.必备 { background: #3b82f6; }
+.goods-tag.精选 { background: #ec4899; }
+
+.goods-info {
+  padding: 1.25rem;
+}
+
+.goods-name {
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.goods-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.goods-price {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: var(--color-accent-pink);
+}
+
+.goods-stock {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.goods-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.goods-actions .btn {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+}
+
+.action-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(18, 18, 26, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+}
+
+.icon-btn:hover {
+  background: var(--color-accent-pink);
+  border-color: var(--color-accent-pink);
+  color: white;
+}
+
+.notice-section {
+  padding: 3rem 0;
+}
+
+.notice-card {
+  background: rgba(26, 26, 36, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+}
+
+.notice-card h3 {
+  color: var(--color-accent-gold);
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.notice-card ul {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.notice-card li {
+  color: var(--color-text-secondary);
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.notice-card li::before {
+  content: '·';
+  position: absolute;
+  left: 0;
+  color: var(--color-accent-gold);
+  font-weight: bold;
+}
+
+@media (max-width: 992px) {
+  .goods-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .goods-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .goods-image {
+    height: 140px;
+  }
+
+  .goods-actions {
+    flex-direction: column;
+  }
+
+  .goods-actions .btn {
+    width: 100%;
+  }
+
+  .notice-card ul {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .goods-grid {
+    grid-template-columns: 1fr;
+  }
+}

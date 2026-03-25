@@ -1,0 +1,224 @@
+.live-page {
+  min-height: 100vh;
+  padding-bottom: 3rem;
+}
+
+.live-header {
+  padding: 3rem 0 2rem;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(91, 141, 239, 0.1) 0%, transparent 100%);
+}
+
+.header-desc {
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.subsection-title {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  color: var(--color-accent-gold);
+  margin-bottom: 1.5rem;
+  padding-left: 1rem;
+  border-left: 3px solid var(--color-accent-gold);
+}
+
+/* ===== 即将直播 ===== */
+.upcoming-live {
+  padding: 3rem 0;
+}
+
+.upcoming-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.upcoming-card {
+  background: rgba(26, 26, 36, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  transition: var(--transition-normal);
+}
+
+.upcoming-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--color-accent-blue);
+  box-shadow: 0 10px 30px rgba(91, 141, 239, 0.15);
+  background: rgba(26, 26, 36, 0.7);
+}
+
+.upcoming-emoji {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+}
+
+.upcoming-info h3 {
+  font-size: 1.1rem;
+  color: var(--color-text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.upcoming-meta {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+
+.upcoming-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.upcoming-meta svg {
+  color: var(--color-accent-blue);
+}
+
+.upcoming-platform {
+  color: var(--color-accent-blue);
+  font-size: 0.85rem;
+  padding: 0.25rem 0.75rem;
+  background: rgba(91, 141, 239, 0.1);
+  border-radius: 20px;
+}
+
+.upcoming-status {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.25rem 0.75rem;
+  background: var(--color-accent-gold);
+  color: var(--color-bg-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 20px;
+}
+
+/* ===== 固定直播安排 ===== */
+.regular-schedule {
+  padding: 3rem 0;
+  background: rgba(18, 18, 26, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.schedule-card {
+  background: rgba(26, 26, 36, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  transition: var(--transition-normal);
+}
+
+.schedule-card:hover {
+  border-color: var(--color-accent-purple);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+  background: rgba(26, 26, 36, 0.7);
+}
+
+.schedule-emoji {
+  font-size: 3rem;
+}
+
+.schedule-content h3 {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  color: var(--color-accent-purple);
+  margin-bottom: 0.5rem;
+}
+
+.schedule-time {
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.schedule-activity {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* ===== 温馨提示 ===== */
+.tips-section {
+  padding: 3rem 0;
+}
+
+.tips-card {
+  background: rgba(26, 26, 36, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+}
+
+.tips-card h3 {
+  color: var(--color-accent-gold);
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.tips-card ul {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.tips-card li {
+  color: var(--color-text-secondary);
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.tips-card li::before {
+  content: '·';
+  position: absolute;
+  left: 0;
+  color: var(--color-accent-gold);
+  font-weight: bold;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 992px) {
+  .upcoming-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .schedule-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .tips-card ul {
+    grid-template-columns: 1fr;
+  }
+}

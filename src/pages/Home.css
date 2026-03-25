@@ -1,0 +1,320 @@
+.home {
+  min-height: 100vh;
+}
+
+/* ===== 轮播区域 ===== */
+.hero-section {
+  position: relative;
+  height: 80vh;
+  min-height: 550px;
+  overflow: hidden;
+}
+
+.carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.carousel-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-slide.active {
+  opacity: 1;
+}
+
+.carousel-slide::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.slide-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 10, 15, 0.3) 0%, rgba(10, 10, 15, 0.4) 100%);
+  z-index: 1;
+}
+
+.slide-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: white;
+  padding: 2rem;
+}
+
+.slide-tag {
+  display: inline-block;
+  padding: 0.5rem 1.5rem;
+  background: rgba(201, 169, 110, 0.3);
+  border-radius: 30px;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(201, 169, 110, 0.3);
+}
+
+.slide-title {
+  font-family: var(--font-serif);
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.slide-subtitle {
+  font-size: 1.3rem;
+  opacity: 0.9;
+  margin-bottom: 2rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.slide-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2.5rem;
+  background: rgba(201, 169, 110, 0.8);
+  color: #1a1a24;
+  text-decoration: none;
+  border-radius: 50px;
+  font-weight: 600;
+  transition: var(--transition-normal);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.slide-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  background: rgba(201, 169, 110, 0.95);
+}
+
+.carousel-dots {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.75rem;
+  z-index: 10;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: var(--transition-normal);
+  padding: 0;
+}
+
+.dot.active {
+  background: var(--color-accent-gold);
+  border-color: var(--color-accent-gold);
+  transform: scale(1.2);
+}
+
+/* ===== 快捷入口 ===== */
+.quick-access {
+  padding: 4rem 0;
+  margin-top: -3rem;
+  position: relative;
+  z-index: 10;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.quick-card {
+  background: rgba(26, 26, 36, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+  color: inherit;
+  transition: var(--transition-normal);
+}
+
+.quick-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  background: rgba(26, 26, 36, 0.7);
+}
+
+.quick-icon {
+  width: 50px;
+  height: 50px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.quick-info h3 {
+  color: var(--color-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.quick-info p {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* ===== 精选歌曲（仅首页，避免与歌单页 .song-info / .songs-grid 冲突）===== */
+.home .featured-songs {
+  padding: 5rem 0;
+}
+
+.home .songs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.home .song-card {
+  background: rgba(26, 26, 36, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: var(--transition-normal);
+  animation: fadeIn 0.5s ease forwards;
+  opacity: 0;
+}
+
+.home .song-card:hover {
+  border-color: rgba(201, 169, 110, 0.4);
+  transform: translateX(5px);
+  background: rgba(26, 26, 36, 0.7);
+}
+
+.home .song-emoji {
+  font-size: 2.5rem;
+  width: 60px;
+  height: 60px;
+  background: rgba(18, 18, 26, 0.6);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home .song-info {
+  flex: 1;
+}
+
+.home .song-info h4 {
+  font-size: 1.1rem;
+  color: var(--color-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.home .song-info span {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.section-more {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+/* ===== 标语区域 ===== */
+.slogan-section {
+  padding: 5rem 0;
+  background: rgba(201, 169, 110, 0.05);
+  backdrop-filter: blur(5px);
+}
+
+.slogan-content {
+  text-align: center;
+}
+
+.slogan-content h2 {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  color: var(--color-accent-gold);
+  margin-bottom: 1rem;
+  letter-spacing: 4px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.slogan-content p {
+  color: var(--color-text-secondary);
+  font-size: 1.1rem;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 992px) {
+  .quick-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .home .songs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    height: 60vh;
+    min-height: 400px;
+  }
+
+  .slide-title {
+    font-size: 2.5rem;
+  }
+
+  .slide-subtitle {
+    font-size: 1rem;
+  }
+
+  .quick-access {
+    margin-top: 0;
+    padding: 2rem 0;
+  }
+
+  .quick-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .home .songs-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .slogan-content h2 {
+    font-size: 1.5rem;
+  }
+}

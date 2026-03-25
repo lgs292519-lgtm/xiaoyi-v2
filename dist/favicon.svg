@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <clipPath id="avatar-clip">
+      <circle cx="50" cy="50" r="48"/>
+    </clipPath>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Background Circle with gold gradient -->
+  <circle cx="50" cy="50" r="48" fill="url(#grad)"/>
+  <!-- Avatar Image -->
+  <image href="/images/avatar.jpg" x="2" y="2" width="96" height="96" clip-path="url(#avatar-clip)" preserveAspectRatio="xMidYMid slice"/>
+  <!-- Fallback text if no image -->
+  <text x="50" y="62" font-family="'Noto Serif SC', serif" font-size="40" font-weight="bold" fill="#0a0a0f" text-anchor="middle" display="none">意</text>
+</svg>
