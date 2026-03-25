@@ -8,8 +8,10 @@ const About = () => {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    const adminData = dataManager.getData();
-    setData(adminData);
+    const refresh = () => setData(dataManager.getData());
+    refresh();
+    window.addEventListener('xiaoyi-avatar-updated', refresh);
+    return () => window.removeEventListener('xiaoyi-avatar-updated', refresh);
   }, []);
 
   if (!data) {

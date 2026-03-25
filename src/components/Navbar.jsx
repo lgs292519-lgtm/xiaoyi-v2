@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { FiMusic, FiShoppingBag, FiRadio, FiUser, FiMessageSquare } from 'react-icons/fi'
 import dataManager from '../utils/dataManager'
@@ -20,6 +20,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [avatarError, setAvatarError] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState(AVATAR_SRC)
+  const avatarUrlRef = useRef(AVATAR_SRC)
   const [douyinLive, setDouyinLive] = useState('')
   const [isLiveNow, setIsLiveNow] = useState(false)
   const [liveBadgeState, setLiveBadgeState] = useState('unknown') // unknown | live | off
@@ -36,7 +37,9 @@ const Navbar = () => {
 
   useEffect(() => {
     const data = dataManager.getData()
-    setAvatarUrl(data?.avatarUrl || AVATAR_SRC)
+    const initialAvatarUrl = data?.avatarUrl || AVATAR_SRC
+    avatarUrlRef.current = initialAvatarUrl
+    setAvatarUrl(initialAvatarUrl)
     setDouyinLive(data?.contact?.douyinLive || '')
 
     const liveId = parseDouyinLiveId(data?.contact?.douyinLive || '')
@@ -59,6 +62,15 @@ const Navbar = () => {
         setIsLiveNow(isLive)
         setLiveTitle(j?.title || '')
         setLiveBadgeState(isUnknown ? 'unknown' : isLive ? 'live' : 'off')
+
+        // 自动同步头像：从实时状态接口拿到 avatar_url 就写回 localStorage
+        const newAvatarUrl = j?.avatar_url
+        if (newAvatarUrl && String(newAvatarUrl) !== avatarUrlRef.current) {
+          avatarUrlRef.current = String(newAvatarUrl)
+          setAvatarUrl(String(newAvatarUrl))
+          dataManager.updateAvatar(String(newAvatarUrl))
+          window.dispatchEvent(new Event('xiaoyi-avatar-updated'))
+        }
       } catch {
         setIsLiveNow(false)
         setLiveTitle('')
