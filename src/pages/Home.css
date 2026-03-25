@@ -8,6 +8,8 @@
   height: 80vh;
   min-height: 550px;
   overflow: hidden;
+  /* 提升移动端横滑识别稳定性（避免浏览器接管触摸手势） */
+  touch-action: pan-y;
 }
 
 .carousel {

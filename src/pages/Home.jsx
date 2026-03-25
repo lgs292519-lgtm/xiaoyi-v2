@@ -6,6 +6,7 @@ import './Home.css'
 const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0)
   const touchStartRef = useRef({ x: 0, y: 0, active: false })
+  const touchDeltaRef = useRef({ dx: 0, dy: 0, lastX: 0, lastY: 0, active: false })
   const suppressNextClickRef = useRef(false)
   
   const slides = [
@@ -27,18 +28,42 @@ const Home = () => {
     const t = e.touches?.[0]
     if (!t) return
     touchStartRef.current = { x: t.clientX, y: t.clientY, active: true }
+    touchDeltaRef.current = { dx: 0, dy: 0, lastX: t.clientX, lastY: t.clientY, active: true }
+  }
+
+  const handleTouchMove = (e) => {
+    const start = touchStartRef.current
+    if (!start.active) return
+    const t = e.touches?.[0] || e.changedTouches?.[0]
+    if (!t) return
+
+    const dx = t.clientX - start.x
+    const dy = t.clientY - start.y
+    // 记录整个手势过程中的“最大偏移”，用于触摸结束时判断
+    touchDeltaRef.current = {
+      ...touchDeltaRef.current,
+      dx: dx,
+      dy: dy,
+      lastX: t.clientX,
+      lastY: t.clientY,
+      active: true,
+    }
   }
 
   const handleTouchEnd = (e) => {
     const start = touchStartRef.current
     if (!start.active) return
-    const t = e.changedTouches?.[0]
-    if (!t) return
-    const dx = t.clientX - start.x
-    const dy = t.clientY - start.y
+
+    // 优先使用 onTouchMove 累积出的 delta（移动端更稳定）；兜底用 touchEnd 的坐标
+    const moved = touchDeltaRef.current
+    const t = e.changedTouches?.[0] || e.touches?.[0]
+    const dx = Number.isFinite(moved?.dx) && moved?.active ? moved.dx : t ? t.clientX - start.x : 0
+    const dy = Number.isFinite(moved?.dy) && moved?.active ? moved.dy : t ? t.clientY - start.y : 0
 
     // 防止误触：需要水平滑动明显、竖直位移较小
-    if (Math.abs(dx) > 35 && Math.abs(dy) < 160) {
+    const dxThreshold = 22 // 放宽：有些手机滑动幅度较小
+    const dyThreshold = 220 // 放宽：允许轻微上下拖动
+    if (Math.abs(dx) > dxThreshold && Math.abs(dy) < dyThreshold) {
       if (dx < 0) {
         setCurrentSlide((prev) => (prev + 1) % slides.length)
       } else {
@@ -51,6 +76,7 @@ const Home = () => {
       }, 400)
     }
     touchStartRef.current.active = false
+    touchDeltaRef.current.active = false
   }
 
   return (
@@ -59,6 +85,7 @@ const Home = () => {
       <section
         className="hero-section"
         onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         <div className="carousel">
