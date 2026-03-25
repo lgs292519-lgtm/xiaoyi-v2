@@ -95,10 +95,9 @@
 }
 
 .live-status__btn {
-  text-decoration: none;
+  border: 1px solid rgba(201, 169, 110, 0.95);
   cursor: pointer;
   background: rgba(201, 169, 110, 0.95);
-  border: 1px solid rgba(201, 169, 110, 0.95);
   color: #12121a;
   padding: 0.22rem 0.48rem;
   border-radius: 999px;
@@ -109,6 +108,9 @@
   justify-content: center;
   box-shadow: 0 6px 18px rgba(201, 169, 110, 0.20);
   transition: transform 0.15s ease;
+  text-decoration: none;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .live-status__btn:hover {

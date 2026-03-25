@@ -110,16 +110,19 @@ const Navbar = () => {
             {douyinLive && isLiveNow ? (
               <>
                 <span className="live-status__text">开播中</span>
-                <a
-                  href={douyinLive}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
                   className="live-status__btn"
                   aria-label="进入直播间"
                   title={liveTitle ? `进入直播间：${liveTitle}` : '进入直播间'}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    window.open(douyinLive, '_blank', 'noopener,noreferrer')
+                  }}
                 >
                   进入直播间
-                </a>
+                </button>
               </>
             ) : (
               <span className="live-status__text live-status__text--off">
