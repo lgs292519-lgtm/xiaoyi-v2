@@ -14,7 +14,7 @@ const WEEKDAY_TO_CN = {
 };
 
 function parseTimeRangeToSlot(timeStr) {
-  // 支持：13:00 - 15:00 / 13-15 / 20:00-21:00
+  // 支持：13:00 - 15:00 / 13-15 / 21:00-22:00
   const raw = String(timeStr ?? '').trim()
   if (!raw) return null
   const s = raw.replace(/\s/g, '').replace(/点/g, '')
@@ -39,7 +39,8 @@ function parseTimeRangeToSlot(timeStr) {
   const timeRangeDisplay = `${startHour}：00-${endHour}：00`
 
   let liveType = '固定'
-  if (slotKey === '20-21') liveType = '随机'
+  // 默认：21-22 点随机（兼容旧配置：20-21 点也当作随机）
+  if (slotKey === '21-22' || slotKey === '20-21') liveType = '随机'
 
   return { slotKey, startHour, endHour, startMin, endMin, slotZh, timeRangeDisplay, liveType }
 }
@@ -70,9 +71,10 @@ function hashToInt(str) {
 
 function parseSlotKeyFromRegularScheduleTime(timeStr) {
   const s = String(timeStr ?? '').replace(/\s/g, '');
-  // Accept: 13:00-15:00 / 13-15 / 16-18 / 20:00 - 21:00
+  // Accept: 13:00-15:00 / 13-15 / 16-18 / 21:00 - 22:00
   if ((s.includes('13') && s.includes('15')) || s.includes('13-15')) return '13-15';
   if ((s.includes('16') && s.includes('18')) || s.includes('16-18')) return '16-18';
+  if ((s.includes('21') && s.includes('22')) || s.includes('21-22')) return '21-22';
   if ((s.includes('20') && s.includes('21')) || s.includes('20-21')) return '20-21';
   return null;
 }
@@ -301,6 +303,11 @@ const Live = () => {
               <div key={item.slotKey} className="schedule-card">
                 <div className="schedule-content">
                           <h3>{item.timeRangeDisplay}</h3>
+                  <p
+                    className={`schedule-live-type schedule-live-type--${item.liveType === '固定' ? 'fixed' : 'random'}`}
+                  >
+                    {item.liveType}
+                  </p>
                   <p className="schedule-time">今天</p>
                   <p className="schedule-activity">{item.title}</p>
                 </div>

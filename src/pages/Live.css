@@ -209,6 +209,29 @@
   margin-bottom: 0.25rem;
 }
 
+.schedule-live-type {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.schedule-live-type--fixed {
+  background: rgba(214, 174, 84, 0.18);
+  color: var(--color-accent-gold);
+  border: 1px solid rgba(214, 174, 84, 0.35);
+}
+
+.schedule-live-type--random {
+  background: rgba(139, 92, 246, 0.18);
+  color: var(--color-accent-purple);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+}
+
 .schedule-activity {
   color: var(--color-text-muted);
   font-size: 0.9rem;
