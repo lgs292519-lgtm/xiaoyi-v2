@@ -50,10 +50,17 @@ const Playlist = () => {
       {/* 分类标签 */}
       <section className="genre-tabs">
         <div className="container">
-          <div className="tabs-wrapper">
+          <div
+            className="tabs-wrapper"
+            role="tablist"
+            aria-label="歌曲风格分类"
+          >
             {genres.map(genre => (
               <button
                 key={genre}
+                type="button"
+                role="tab"
+                aria-selected={currentGenre === genre}
                 className={`tab-btn ${currentGenre === genre ? 'active' : ''}`}
                 onClick={() => setCurrentGenre(genre)}
                 style={{

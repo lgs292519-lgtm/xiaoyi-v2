@@ -45,6 +45,10 @@
 
 html {
   scroll-behavior: smooth;
+  max-width: 100%;
+  /* 先 hidden 兜底；支持 clip 的浏览器用 clip，减少对 sticky/fixed 的副作用 */
+  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
@@ -58,7 +62,6 @@ body {
   line-height: 1.6;
   min-height: 100vh;
   min-height: 100dvh;
-  overflow-x: hidden;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -80,6 +83,8 @@ body::before {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .main-content {

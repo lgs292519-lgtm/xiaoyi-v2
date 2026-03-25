@@ -68,16 +68,33 @@
   padding: 1.5rem 0;
   position: sticky;
   top: var(--nav-height);
-  background: rgba(10, 10, 15, 0.2);
-  backdrop-filter: blur(10px);
-  z-index: 100;
+  background: rgba(10, 10, 15, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 950;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .tabs-wrapper {
   display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
   gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
+  overflow-y: hidden;
   padding-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+}
+
+/* 移动端隐藏横向滚动条，仍可手指滑动 */
+.tabs-wrapper::-webkit-scrollbar {
+  height: 0;
 }
 
 .tab-btn {
@@ -93,6 +110,8 @@
   font-size: 0.95rem;
   cursor: pointer;
   white-space: nowrap;
+  flex-shrink: 0;
+  scroll-snap-align: start;
   transition: var(--transition-normal);
 }
 
@@ -198,6 +217,17 @@
 @media (max-width: 768px) {
   .genre-tabs {
     top: var(--nav-height-mobile);
+    padding: 1rem 0;
+  }
+
+  /* 分类条占满屏宽，内边距只在滚动轨道内，便于左右滑 */
+  .genre-tabs .container {
+    max-width: none;
+    width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+    margin: 0;
+    min-width: 0;
   }
 
   .header-content {
@@ -215,8 +245,14 @@
 
   .tabs-wrapper {
     gap: 0.5rem;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    scroll-padding-inline: 1rem;
+    scrollbar-width: none;
+  }
+
+  .tabs-wrapper::-webkit-scrollbar {
+    display: none;
   }
 
   .tab-btn {
