@@ -220,7 +220,15 @@ const Live = () => {
       .filter((t) => t && t !== '未配置活动');
     if (!pool.length) continue // 无配置 => 隐藏该时段
 
-    const liveTypeFromItems = entries.find((e) => e?.liveType === '固定' || e?.liveType === '随机')?.liveType
+    // 若同一时段存在多条记录，取“最后设置/最后存在”的 liveType，避免数组顺序导致选择被忽略
+    let liveTypeFromItems = undefined
+    for (let i = entries.length - 1; i >= 0; i--) {
+      const lt = entries[i]?.liveType
+      if (lt === '固定' || lt === '随机') {
+        liveTypeFromItems = lt
+        break
+      }
+    }
     const liveType = liveTypeFromItems || parsedSlot.liveType
     const seedStr = liveType === '随机' ? `${todayISO}-${slotKey}` : `${slotKey}-fixed`
     const title = selectDeterministic(pool, seedStr)

@@ -42,7 +42,12 @@ const AdminPanel = ({ onClose }) => {
       liveType: '固定',
     }
   })
-  const [newSchedule, setNewSchedule] = useState({ day: '', time: '', activity: '', liveType: '固定' });
+  const [newSchedule, setNewSchedule] = useState({
+    day: '每天',
+    time: '13:00 - 15:00',
+    activity: '',
+    liveType: '固定',
+  });
   const [cottonMessages, setCottonMessages] = useState([]);
   const [aboutFixedTags, setAboutFixedTags] = useState([]);
   const [aboutExtraTags, setAboutExtraTags] = useState([]);
@@ -433,7 +438,15 @@ const AdminPanel = ({ onClose }) => {
       const pool = poolSource.map((e) => String(e?.activity ?? '').trim()).filter((t) => t && t !== '未配置活动')
       if (!pool.length) continue
 
-      const liveTypeFromItems = entries.find((e) => e?.liveType === '固定' || e?.liveType === '随机')?.liveType
+      // 若同一时段存在多条记录，取“最后设置/最后存在”的 liveType，避免数组顺序导致选择被忽略
+      let liveTypeFromItems = undefined
+      for (let i = entries.length - 1; i >= 0; i--) {
+        const lt = entries[i]?.liveType
+        if (lt === '固定' || lt === '随机') {
+          liveTypeFromItems = lt
+          break
+        }
+      }
       const liveType = liveTypeFromItems || parsedSlot.liveType
       const seedStr = liveType === '随机' ? `${todayISO}-${parsedSlot.slotKey}` : `${parsedSlot.slotKey}-fixed`
       const title = selectDeterministic(pool, seedStr)
@@ -522,7 +535,7 @@ const AdminPanel = ({ onClose }) => {
 
   // 固定直播安排
   const handleAddSchedule = () => {
-    if (!newSchedule.day.trim() || !newSchedule.time.trim()) {
+    if (!String(newSchedule.day ?? '').trim() || !String(newSchedule.time ?? '').trim() || !String(newSchedule.activity ?? '').trim()) {
       showSaveStatus('请填写完整信息', false);
       return;
     }
@@ -532,7 +545,7 @@ const AdminPanel = ({ onClose }) => {
     dataManager.updateRegularSchedule(updated);
     // 兜底：确保其它页面（如 Live）收到刷新事件
     window.dispatchEvent(new Event('xiaoyi-data-updated'))
-    setNewSchedule({ day: '', time: '', activity: '', liveType: '固定' });
+    setNewSchedule({ day: '每天', time: '13:00 - 15:00', activity: '', liveType: '固定' });
     showSaveStatus('直播安排添加成功');
   };
 
@@ -956,15 +969,14 @@ const AdminPanel = ({ onClose }) => {
                       value={newSchedule.day}
                       onChange={e => setNewSchedule({ ...newSchedule, day: e.target.value })}
                     />
-                    <input
-                      type="text"
-                      placeholder="时间（填：13:00 - 15:00 / 16:00 - 18:00 / 21:00 - 22:00 或 13-15 / 21-22）"
+                    <select
                       value={newSchedule.time}
-                      onChange={e => {
-                        const time = e.target.value
-                        setNewSchedule({ ...newSchedule, time, liveType: deriveLiveTypeFromTime(time) })
-                      }}
-                    />
+                      onChange={(e) => setNewSchedule({ ...newSchedule, time: e.target.value })}
+                    >
+                      <option value="13:00 - 15:00">13:00 - 15:00</option>
+                      <option value="16:00 - 18:00">16:00 - 18:00</option>
+                      <option value="21:00 - 22:00">21:00 - 22:00</option>
+                    </select>
                     <select
                       value={newSchedule.liveType}
                       onChange={(e) => setNewSchedule({ ...newSchedule, liveType: e.target.value })}
