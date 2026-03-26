@@ -39,7 +39,7 @@
 }
 
 .profile-tagline {
-  color: var(--color-text-secondary);
+  color: #fff;
   font-size: 1.2rem;
   margin-bottom: 2rem;
 }
@@ -63,7 +63,7 @@
 
 .stat-label {
   font-size: 0.9rem;
-  color: var(--color-text-muted);
+  color: #fff;
 }
 
 /* ===== 简介 ===== */

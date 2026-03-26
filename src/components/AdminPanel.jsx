@@ -29,8 +29,8 @@ const AdminPanel = ({ onClose }) => {
   const [regularSchedule, setRegularSchedule] = useState([]);
   const [aboutIntro, setAboutIntro] = useState({});
   const [headerText, setHeaderText] = useState({});
-  const [newLive, setNewLive] = useState({ title: '', date: '', time: '', platform: 'douyin' });
-  const [newSchedule, setNewSchedule] = useState({ day: '', time: '', activity: '' });
+  const [newLive, setNewLive] = useState({ title: '', date: '', time: '', platform: 'douyin', liveType: '固定' });
+  const [newSchedule, setNewSchedule] = useState({ day: '', time: '', activity: '', liveType: '固定' });
   const [cottonMessages, setCottonMessages] = useState([]);
   const [aboutFixedTags, setAboutFixedTags] = useState([]);
   const [aboutExtraTags, setAboutExtraTags] = useState([]);
@@ -114,6 +114,11 @@ const AdminPanel = ({ onClose }) => {
     if (slotKey === '21-22' || slotKey === '20-21') liveType = '随机'
 
     return { slotKey, startHour, endHour, startMin, endMin, slotZh, timeRangeDisplay, liveType }
+  }
+
+  function deriveLiveTypeFromTime(timeStr) {
+    const parsed = parseTimeRangeToSlot(timeStr)
+    return parsed?.liveType || '固定'
   }
 
   function parseHourFromTime(timeStr) {
@@ -209,15 +214,16 @@ const AdminPanel = ({ onClose }) => {
 
   // 直播预告
   const handleAddLive = () => {
-    if (!newLive.title.trim() || !newLive.date.trim()) {
+    if (!newLive.title.trim() || !newLive.date.trim() || !newLive.time.trim()) {
       showSaveStatus('请填写完整信息', false);
       return;
     }
-    const live = { ...newLive, id: Date.now(), status: '预告' };
+    const liveTypeAuto = deriveLiveTypeFromTime(newLive.time)
+    const live = { ...newLive, liveType: newLive.liveType || liveTypeAuto, id: Date.now(), status: '预告' };
     const updated = [...upcomingLives, live];
     setUpcomingLives(updated);
     dataManager.updateUpcomingLives(updated);
-    setNewLive({ title: '', date: '', time: '', platform: 'douyin' });
+    setNewLive({ title: '', date: '', time: '', platform: 'douyin', liveType: '固定' });
     showSaveStatus('直播预告添加成功');
   };
 
@@ -238,6 +244,7 @@ const AdminPanel = ({ onClose }) => {
         date: generated.date,
         time: generated.time,
         platform: generated.platform || 'douyin',
+        liveType: generated.liveType || '固定',
         status: '已隐藏',
       },
     ]
@@ -267,6 +274,7 @@ const AdminPanel = ({ onClose }) => {
         date: entry.date,
         time: entry.time,
         platform: entry.platform || 'douyin',
+        liveType: entry.liveType || '固定',
         status: '预告',
       },
     ]
@@ -307,7 +315,8 @@ const AdminPanel = ({ onClose }) => {
       const pool = poolSource.map((e) => String(e?.activity ?? '').trim()).filter((t) => t && t !== '未配置活动')
       if (!pool.length) continue
 
-      const liveType = parsedSlot.liveType
+      const liveTypeFromItems = entries.find((e) => e?.liveType === '固定' || e?.liveType === '随机')?.liveType
+      const liveType = liveTypeFromItems || parsedSlot.liveType
       const seedStr = liveType === '随机' ? `${todayISO}-${parsedSlot.slotKey}` : `${parsedSlot.slotKey}-fixed`
       const title = selectDeterministic(pool, seedStr)
 
@@ -362,6 +371,7 @@ const AdminPanel = ({ onClose }) => {
           date: manual.date || g.date,
           time: manual.time || g.time,
           platform: manual.platform || g.platform,
+          liveType: manual.liveType || g.liveType,
           status: manual.status || g.status,
         })
       } else {
@@ -386,7 +396,7 @@ const AdminPanel = ({ onClose }) => {
     const updated = [...regularSchedule, item];
     setRegularSchedule(updated);
     dataManager.updateRegularSchedule(updated);
-    setNewSchedule({ day: '', time: '', activity: '' });
+    setNewSchedule({ day: '', time: '', activity: '', liveType: '固定' });
     showSaveStatus('直播安排添加成功');
   };
 
@@ -638,8 +648,18 @@ const AdminPanel = ({ onClose }) => {
                       type="text"
                       placeholder="时间（如：20:00）"
                       value={newLive.time}
-                      onChange={e => setNewLive({ ...newLive, time: e.target.value })}
+                      onChange={e => {
+                        const time = e.target.value
+                        setNewLive({ ...newLive, time, liveType: deriveLiveTypeFromTime(time) })
+                      }}
                     />
+                    <select
+                      value={newLive.liveType}
+                      onChange={(e) => setNewLive({ ...newLive, liveType: e.target.value })}
+                    >
+                      <option value="固定">固定</option>
+                      <option value="随机">随机</option>
+                    </select>
                     <button className="btn-add" onClick={handleAddLive}>
                       <FiPlus /> 添加
                     </button>
@@ -661,6 +681,16 @@ const AdminPanel = ({ onClose }) => {
                         </span>
                         <span className="live-meta">
                           <FiCalendar /> {live.date} <FiClock /> {live.time}
+                        </span>
+                        <span
+                          style={{
+                            marginTop: '0.25rem',
+                            fontSize: '0.85rem',
+                            color: live.liveType === '随机' ? 'rgba(139, 92, 246, 0.95)' : 'rgba(224, 192, 151, 0.95)',
+                            fontWeight: 800,
+                          }}
+                        >
+                          {live.liveType}
                         </span>
                       </div>
                       <button
@@ -693,10 +723,20 @@ const AdminPanel = ({ onClose }) => {
                     />
                     <input
                       type="text"
-                      placeholder="时间（填：13:00 - 15:00 / 16:00 - 18:00 / 21:00 - 22:00 或 13-15）"
+                      placeholder="时间（填：13:00 - 15:00 / 16:00 - 18:00 / 21:00 - 22:00 或 13-15 / 21-22）"
                       value={newSchedule.time}
-                      onChange={e => setNewSchedule({ ...newSchedule, time: e.target.value })}
+                      onChange={e => {
+                        const time = e.target.value
+                        setNewSchedule({ ...newSchedule, time, liveType: deriveLiveTypeFromTime(time) })
+                      }}
                     />
+                    <select
+                      value={newSchedule.liveType}
+                      onChange={(e) => setNewSchedule({ ...newSchedule, liveType: e.target.value })}
+                    >
+                      <option value="固定">固定</option>
+                      <option value="随机">随机</option>
+                    </select>
                     <input
                       type="text"
                       placeholder="活动名称"
@@ -716,6 +756,9 @@ const AdminPanel = ({ onClose }) => {
                       <div className="schedule-info">
                         <span className="schedule-day">{item.day}</span>
                         <span className="schedule-time">{item.time}</span>
+                        <span className="schedule-activity" style={{ color: 'rgba(224, 192, 151, 0.9)', marginTop: '0.25rem' }}>
+                          {item.liveType || ''}
+                        </span>
                         <span className="schedule-activity">{item.activity}</span>
                       </div>
                       <button

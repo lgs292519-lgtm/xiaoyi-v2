@@ -167,7 +167,8 @@ const Live = () => {
       .filter((t) => t && t !== '未配置活动');
     if (!pool.length) continue // 无配置 => 隐藏该时段
 
-    const liveType = parsedSlot.liveType
+    const liveTypeFromItems = entries.find((e) => e?.liveType === '固定' || e?.liveType === '随机')?.liveType
+    const liveType = liveTypeFromItems || parsedSlot.liveType
     const seedStr = liveType === '随机' ? `${todayISO}-${slotKey}` : `${slotKey}-fixed`
     const title = selectDeterministic(pool, seedStr)
 
@@ -231,7 +232,8 @@ const Live = () => {
         date: override.date || '今天',
         time: slot.time,
         timeRangeDisplay: slot.timeRangeDisplay,
-        liveType: slot.liveType,
+        // 管理端可选手动覆盖“固定/随机”标签
+        liveType: override.liveType || slot.liveType,
         platform: override.platform || 'douyin',
         status: override.status || '预告',
         _startMin: slot.startMin,
