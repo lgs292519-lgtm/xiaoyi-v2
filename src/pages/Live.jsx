@@ -95,6 +95,52 @@ function selectDeterministic(arr, seedStr) {
   return list[idx];
 }
 
+function parseISODateParts(dateISO) {
+  const m = String(dateISO ?? '').trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  const y = Number(m[1]);
+  const mo = Number(m[2]);
+  const day = Number(m[3]);
+  if (!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(day)) return null;
+  return { y, mo, day };
+}
+
+function parseLocalDateTime(dateISO, timeHHMM) {
+  const dateParts = parseISODateParts(dateISO);
+  if (!dateParts) return null;
+  const t = String(timeHHMM ?? '').trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!t) return null;
+  const hh = Number(t[1]);
+  const mm = Number(t[2]);
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+  if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return null;
+  const dt = new Date(dateParts.y, dateParts.mo - 1, dateParts.day, hh, mm, 0, 0);
+  const ms = dt.getTime();
+  if (!Number.isFinite(ms)) return null;
+  return ms;
+}
+
+function formatDateLabel(dateISO) {
+  const parts = parseISODateParts(dateISO);
+  if (!parts) return String(dateISO ?? '');
+  const now = new Date();
+  if (now.getFullYear() === parts.y && now.getMonth() + 1 === parts.mo && now.getDate() === parts.day) {
+    return '今天';
+  }
+  return `${parts.mo}月${parts.day}日`;
+}
+
+function formatTimeRangeDisplay(startTime, endTime) {
+  const s = String(startTime ?? '').trim().match(/^(\d{1,2}):(\d{2})$/);
+  const e = String(endTime ?? '').trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!s || !e) return '';
+  const sh = String(Number(s[1])).padStart(2, '0');
+  const sm = s[2];
+  const eh = String(Number(e[1])).padStart(2, '0');
+  const em = e[2];
+  return `${sh}：${sm}-${eh}：${em}`;
+}
+
 const Live = () => {
   const [data, setData] = useState(null);
   const [nowTick, setNowTick] = useState(Date.now());
@@ -185,11 +231,15 @@ const Live = () => {
 
   dailySchedule.sort((a, b) => a.startMin - b.startMin)
 
+  const todayDate = new Date(nowTick)
+
   // 即将直播：只展示未来的已配置时段；若管理端手动预告属于该时段，会覆盖标题
   const slotByStartHour = new Map(dailySchedule.map((s) => [s.startHour, s]))
   const overrides = new Map() // slotKey => manual live
   for (const m of upcomingLivesManual) {
     if (!m) continue
+    // 手动“任意时间预告”（带 startTime/endTime）不参与覆盖固定时段卡片
+    if (m.startTime && m.endTime) continue
 
     const hour = parseHourFromTime(m.time)
     if (hour === null) continue
@@ -200,7 +250,7 @@ const Live = () => {
     overrides.set(slot.slotKey, m)
   }
 
-  const upcomingLives = dailySchedule
+  const fixedUpcomingLives = dailySchedule
     .filter((slot) => nowMinutes < slot.startMin)
     .map((slot) => {
       const override = overrides.get(slot.slotKey)
@@ -209,6 +259,15 @@ const Live = () => {
       if (override && override.status === '已隐藏') return null
 
       if (!override) {
+        const startAtMs = new Date(
+          todayDate.getFullYear(),
+          todayDate.getMonth(),
+          todayDate.getDate(),
+          slot.startHour,
+          0,
+          0,
+          0
+        ).getTime()
         return {
           id: `auto-${todayISO}-${slot.slotKey}`,
           title: slot.title,
@@ -218,10 +277,19 @@ const Live = () => {
           liveType: slot.liveType,
           platform: 'douyin',
           status: '预告',
-          _startMin: slot.startMin,
+          _startAtMs: startAtMs,
         }
       }
 
+      const startAtMs = new Date(
+        todayDate.getFullYear(),
+        todayDate.getMonth(),
+        todayDate.getDate(),
+        slot.startHour,
+        0,
+        0,
+        0
+      ).getTime()
       return {
         ...override,
         id: `override-${override.id ?? slot.slotKey}-${todayISO}-${slot.slotKey}`,
@@ -233,12 +301,39 @@ const Live = () => {
         liveType: override.liveType || slot.liveType,
         platform: override.platform || 'douyin',
         status: override.status || '预告',
-        _startMin: slot.startMin,
+        _startAtMs: startAtMs,
       }
     })
     .filter(Boolean)
 
-  upcomingLives.sort((a, b) => a._startMin - b._startMin)
+  fixedUpcomingLives.sort((a, b) => a._startAtMs - b._startAtMs)
+
+  // 手动预告（不依赖固定三段时段）：只要 startTime/endTime + dateISO 且时间未过去就展示
+  const manualExtras = upcomingLivesManual
+    .filter((m) => m && m.status !== '已隐藏' && m.dateISO && m.startTime && m.endTime)
+    .map((m) => {
+      const startAtMs = parseLocalDateTime(m.dateISO, m.startTime)
+      if (startAtMs === null || startAtMs <= nowTick) return null
+
+      const startHour = (() => {
+        const mm = String(m.startTime ?? '').match(/^(\d{1,2}):/)
+        return mm ? Number(mm[1]) : null
+      })()
+      return {
+        id: `manual-${m.id ?? startAtMs}`,
+        title: m.title || '',
+        date: m.date || formatDateLabel(m.dateISO),
+        time: m.time || `${m.startTime}-${m.endTime}`,
+        timeRangeDisplay: m.timeRangeDisplay || formatTimeRangeDisplay(m.startTime, m.endTime),
+        liveType: m.liveType || '固定',
+        platform: m.platform || 'douyin',
+        status: '预告',
+        _startAtMs: startAtMs,
+      }
+    })
+    .filter(Boolean)
+
+  const upcomingLives = [...fixedUpcomingLives, ...manualExtras].sort((a, b) => a._startAtMs - b._startAtMs)
 
   return (
     <div className="live-page">
@@ -263,7 +358,7 @@ const Live = () => {
                   <span
                     className={`upcoming-live-type upcoming-live-type--${live.liveType === '固定' ? 'fixed' : 'random'}`}
                   >
-                    {live.time} {live.liveType}
+                    {live.liveType}
                   </span>
                   <div className="upcoming-meta">
                     <span><FiCalendar /> {live.date}</span>

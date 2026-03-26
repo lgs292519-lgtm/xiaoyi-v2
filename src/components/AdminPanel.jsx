@@ -29,7 +29,18 @@ const AdminPanel = ({ onClose }) => {
   const [regularSchedule, setRegularSchedule] = useState([]);
   const [aboutIntro, setAboutIntro] = useState({});
   const [headerText, setHeaderText] = useState({});
-  const [newLive, setNewLive] = useState({ title: '', date: '', time: '', platform: 'douyin', liveType: '固定' });
+  const [newLive, setNewLive] = useState(() => {
+    const t = new Date()
+    const dateISO = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`
+    return {
+      title: '',
+      dateISO,
+      startTime: '10:00',
+      endTime: '12:00',
+      platform: 'douyin',
+      liveType: '固定',
+    }
+  })
   const [newSchedule, setNewSchedule] = useState({ day: '', time: '', activity: '', liveType: '固定' });
   const [cottonMessages, setCottonMessages] = useState([]);
   const [aboutFixedTags, setAboutFixedTags] = useState([]);
@@ -129,6 +140,56 @@ const AdminPanel = ({ onClose }) => {
     return clampInt(hh, { min: 0, max: 23, fallback: null })
   }
 
+  function parseISODateParts(dateISO) {
+    const m = String(dateISO ?? '').trim().match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    if (!m) return null
+    const y = Number(m[1])
+    const mo = Number(m[2])
+    const day = Number(m[3])
+    if (!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(day)) return null
+    return { y, mo, day }
+  }
+
+  function parseLocalDateTime(dateISO, timeHHMM) {
+    const dateParts = parseISODateParts(dateISO)
+    if (!dateParts) return null
+    const t = String(timeHHMM ?? '').trim().match(/^(\d{1,2}):(\d{2})$/)
+    if (!t) return null
+    const hh = Number(t[1])
+    const mm = Number(t[2])
+    if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null
+    if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return null
+    const dt = new Date(dateParts.y, dateParts.mo - 1, dateParts.day, hh, mm, 0, 0)
+    const ms = dt.getTime()
+    if (!Number.isFinite(ms)) return null
+    return ms
+  }
+
+  function formatDateLabel(dateISO) {
+    const parts = parseISODateParts(dateISO)
+    if (!parts) return String(dateISO ?? '')
+    const now = new Date()
+    if (
+      now.getFullYear() === parts.y &&
+      now.getMonth() + 1 === parts.mo &&
+      now.getDate() === parts.day
+    ) {
+      return '今天'
+    }
+    return `${parts.mo}月${parts.day}日`
+  }
+
+  function formatTimeRangeDisplay(startTime, endTime) {
+    const s = String(startTime ?? '').trim().match(/^(\d{1,2}):(\d{2})$/)
+    const e = String(endTime ?? '').trim().match(/^(\d{1,2}):(\d{2})$/)
+    if (!s || !e) return ''
+    const sh = String(Number(s[1])).padStart(2, '0')
+    const sm = s[2]
+    const eh = String(Number(e[1])).padStart(2, '0')
+    const em = e[2]
+    return `${sh}：${sm}-${eh}：${em}`
+  }
+
   const showSaveStatus = (message, isSuccess = true) => {
     setSaveStatus(isSuccess ? `✓ ${message}` : `✗ ${message}`);
     setTimeout(() => setSaveStatus(''), 2000);
@@ -214,16 +275,38 @@ const AdminPanel = ({ onClose }) => {
 
   // 直播预告
   const handleAddLive = () => {
-    if (!newLive.title.trim() || !newLive.date.trim() || !newLive.time.trim()) {
+    if (!newLive.title.trim() || !String(newLive.dateISO ?? '').trim() || !String(newLive.startTime ?? '').trim() || !String(newLive.endTime ?? '').trim()) {
       showSaveStatus('请填写完整信息', false);
       return;
     }
-    const liveTypeAuto = deriveLiveTypeFromTime(newLive.time)
-    const live = { ...newLive, liveType: newLive.liveType || liveTypeAuto, id: Date.now(), status: '预告' };
+
+    const timeRangeDisplay = formatTimeRangeDisplay(newLive.startTime, newLive.endTime)
+    const liveDateLabel = formatDateLabel(newLive.dateISO)
+
+    // time 字段用于兼容旧逻辑（只取起始小时）；startTime/endTime 用于前端渲染任意时间预告
+    const live = {
+      id: Date.now(),
+      title: newLive.title,
+      dateISO: newLive.dateISO,
+      date: liveDateLabel,
+      startTime: newLive.startTime,
+      endTime: newLive.endTime,
+      time: `${newLive.startTime}-${newLive.endTime}`,
+      timeRangeDisplay,
+      platform: newLive.platform || 'douyin',
+      liveType: newLive.liveType || '固定',
+      status: '预告',
+    }
     const updated = [...upcomingLives, live];
     setUpcomingLives(updated);
     dataManager.updateUpcomingLives(updated);
-    setNewLive({ title: '', date: '', time: '', platform: 'douyin', liveType: '固定' });
+    setNewLive((prev) => ({
+      ...prev,
+      title: '',
+      liveType: prev.liveType || '固定',
+      startTime: prev.startTime || '10:00',
+      endTime: prev.endTime || '12:00',
+    }))
     showSaveStatus('直播预告添加成功');
   };
 
@@ -380,7 +463,26 @@ const AdminPanel = ({ onClose }) => {
       }
     }
 
-    return merged
+    // 额外的“任意时间预告”：只要 dateISO + startTime/endTime 且时间未过去就展示
+    const manualExtras = (upcomingLives || [])
+      .filter((m) => m && m.status !== '已隐藏' && m.dateISO && m.startTime && m.endTime)
+      .map((m) => {
+        const startAtMs = parseLocalDateTime(m.dateISO, m.startTime)
+        if (startAtMs === null || startAtMs <= Date.now()) return null
+
+        return {
+          ...m,
+          id: m.id,
+          _manualId: m.id,
+          date: m.date || formatDateLabel(m.dateISO),
+          time: m.time || `${m.startTime}-${m.endTime}`,
+          liveType: m.liveType || '固定',
+          status: '预告',
+        }
+      })
+      .filter(Boolean)
+
+    return [...merged, ...manualExtras]
   })()
 
   // 固定直播安排
@@ -636,19 +738,19 @@ const AdminPanel = ({ onClose }) => {
                       onChange={e => setNewLive({ ...newLive, title: e.target.value })}
                     />
                     <input
-                      type="text"
-                      placeholder="日期（如：周六）"
-                      value={newLive.date}
-                      onChange={e => setNewLive({ ...newLive, date: e.target.value })}
+                      type="date"
+                      value={newLive.dateISO}
+                      onChange={(e) => setNewLive({ ...newLive, dateISO: e.target.value })}
                     />
                     <input
-                      type="text"
-                      placeholder="时间（如：20:00）"
-                      value={newLive.time}
-                      onChange={e => {
-                        const time = e.target.value
-                        setNewLive({ ...newLive, time, liveType: deriveLiveTypeFromTime(time) })
-                      }}
+                      type="time"
+                      value={newLive.startTime}
+                      onChange={(e) => setNewLive({ ...newLive, startTime: e.target.value })}
+                    />
+                    <input
+                      type="time"
+                      value={newLive.endTime}
+                      onChange={(e) => setNewLive({ ...newLive, endTime: e.target.value })}
                     />
                     <select
                       value={newLive.liveType}
