@@ -438,6 +438,19 @@ export const promoteAboutExtraTag = async (extraId) => {
   return data?.ok === true
 }
 
+// 管理员：重置固定/备用标签到默认值
+export const resetAboutTagsToDefault = async (options = {}) => {
+  const adminPass = options?.adminPass
+  const res = await fetch(`${API_BASE}/api/about-tags/reset`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ ...(adminPass ? { adminPass } : {}) }),
+  })
+  if (!res.ok) return false
+  const data = await res.json().catch(() => ({}))
+  return data?.ok === true
+}
+
 // 管理员：删除固定/备用标签
 export const deleteAboutTag = async (tagType, id, options = {}) => {
   const adminPass = options?.adminPass
@@ -495,6 +508,7 @@ export default {
   promoteAboutExtraTag,
   deleteAboutTag,
   editAboutTagName,
+  resetAboutTagsToDefault,
   syncAdminDataFromServer,
   resetData
 };
