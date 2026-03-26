@@ -17,10 +17,17 @@ function parseTimeRangeToSlot(timeStr) {
   // 支持：13:00 - 15:00 / 13-15 / 21:00-22:00
   const raw = String(timeStr ?? '').trim()
   if (!raw) return null
-  const s = raw.replace(/\s/g, '').replace(/点/g, '')
+  // 兼容：全角/半角分隔符、中文“点/至”等写法
+  const s = raw
+    .replace(/\s/g, '')
+    .replace(/点/g, '')
+    .replace(/：/g, ':')
+    .replace(/[－–—]/g, '-')
+    .replace(/至/g, '-')
+    .replace(/~/g, '-')
 
   // 重点：优先匹配 “HH:00-HH:00” 或 “HH:00-HH”
-  const m1 = s.match(/^(\d{1,2})(?::[0]*0)?[-—~至](\d{1,2})(?::[0]*0)?$/)
+  const m1 = s.match(/^(\d{1,2})(?::[0]*0)?-(\d{1,2})(?::[0]*0)?$/)
   // 次级：匹配 “HH-HH”
   const m2 = !m1 ? s.match(/^(\d{1,2})[-—~至](\d{1,2})$/) : null
   const m = m1 || m2

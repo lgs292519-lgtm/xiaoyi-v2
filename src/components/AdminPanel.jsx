@@ -102,10 +102,17 @@ const AdminPanel = ({ onClose }) => {
   function parseTimeRangeToSlot(timeStr) {
     const raw = String(timeStr ?? '').trim()
     if (!raw) return null
-    const s = raw.replace(/\s/g, '').replace(/点/g, '')
+    // 兼容：全角/半角分隔符、中文“点/至”等写法
+    const s = raw
+      .replace(/\s/g, '')
+      .replace(/点/g, '')
+      .replace(/：/g, ':')
+      .replace(/[－–—]/g, '-')
+      .replace(/至/g, '-')
+      .replace(/~/g, '-')
 
-    const m1 = s.match(/^(\d{1,2})(?::[0]*0)?[-—~至](\d{1,2})(?::[0]*0)?$/)
-    const m2 = !m1 ? s.match(/^(\d{1,2})[-—~至](\d{1,2})$/) : null
+    const m1 = s.match(/^(\d{1,2})(?::[0]*0)?-(\d{1,2})(?::[0]*0)?$/)
+    const m2 = !m1 ? s.match(/^(\d{1,2})-(\d{1,2})$/) : null
     const m = m1 || m2
     if (!m) return null
 
