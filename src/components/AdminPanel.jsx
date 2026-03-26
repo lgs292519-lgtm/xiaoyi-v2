@@ -530,6 +530,8 @@ const AdminPanel = ({ onClose }) => {
     const updated = [...regularSchedule, item];
     setRegularSchedule(updated);
     dataManager.updateRegularSchedule(updated);
+    // 兜底：确保其它页面（如 Live）收到刷新事件
+    window.dispatchEvent(new Event('xiaoyi-data-updated'))
     setNewSchedule({ day: '', time: '', activity: '', liveType: '固定' });
     showSaveStatus('直播安排添加成功');
   };
@@ -538,6 +540,8 @@ const AdminPanel = ({ onClose }) => {
     const updated = regularSchedule.filter(s => s.id !== id);
     setRegularSchedule(updated);
     dataManager.updateRegularSchedule(updated);
+    // 兜底：确保其它页面（如 Live）收到刷新事件
+    window.dispatchEvent(new Event('xiaoyi-data-updated'))
     showSaveStatus('直播安排已删除');
   };
 
