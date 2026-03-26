@@ -42,7 +42,9 @@ const Playlist = () => {
   useEffect(() => {
     const refreshSongs = () => {
       const d = dataManager.getData()
-      const list = Array.isArray(d?.songs) && d.songs.length ? d.songs : songData
+      // 注意：如果用户在后台把歌单删到空数组，前端应显示空状态；
+      // 只有当 d.songs 不是数组（或缺失）时才回退到默认 songs.json。
+      const list = Array.isArray(d?.songs) ? d.songs : songData
       setSongsAll(list)
     }
     refreshSongs()
