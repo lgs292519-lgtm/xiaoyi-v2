@@ -225,13 +225,11 @@ const AdminPanel = ({ onClose }) => {
     showSaveStatus('已重置为默认数据');
     // 标签在 D1 中，不属于 localStorage，因此重置时也需要一并恢复默认标签
     try {
-      if (isAdminAuthed()) {
-        const okTags = await dataManager.resetAboutTagsToDefault({ adminPass: ADMIN_PASSWORD })
-        if (okTags) {
-          const res2 = await dataManager.getAboutTags()
-          setAboutFixedTags(res2?.fixed || [])
-          setAboutExtraTags(res2?.extras || [])
-        }
+      const okTags = await dataManager.resetAboutTagsToDefault({ adminPass: ADMIN_PASSWORD })
+      if (okTags) {
+        const res2 = await dataManager.getAboutTags()
+        setAboutFixedTags(res2?.fixed || [])
+        setAboutExtraTags(res2?.extras || [])
       }
     } catch {
       // 忽略标签重置失败：不影响其它本地数据重置
