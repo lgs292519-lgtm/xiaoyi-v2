@@ -190,9 +190,6 @@ const Live = () => {
   const overrides = new Map() // slotKey => manual live
   for (const m of upcomingLivesManual) {
     if (!m) continue
-    const manualDate = String(m.date ?? '')
-    const isToday = manualDate === todayCN || manualDate === '今天'
-    if (!isToday) continue
 
     const hour = parseHourFromTime(m.time)
     if (hour === null) continue

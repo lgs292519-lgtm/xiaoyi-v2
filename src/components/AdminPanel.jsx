@@ -343,9 +343,6 @@ const AdminPanel = ({ onClose }) => {
     const manualBySlotKey = new Map() // slotKey -> manual live (latest by id)
     for (const m of upcomingLives || []) {
       if (!m) continue
-      const manualDate = String(m.date ?? '')
-      const isToday = manualDate === todayCN || manualDate === '今天'
-      if (!isToday) continue
       const hour = parseHourFromTime(m.time)
       if (hour === null) continue
       const slot = slotByStartHour.get(hour)
