@@ -340,6 +340,15 @@ const About = () => {
         <div className="container">
           <h2 className="subsection-title">更新日志</h2>
           <div className="update-log-card">
+            <div className="update-log-date">2026-03-26</div>
+            <ul className="update-log-list">
+              <li>管理端“直播预告”改为日期 + 起止时间选择：未到开始时间的预告会正常展示</li>
+              <li>管理端歌单删除/新增同步修复：删除一首不会误删全部；清空歌单后前端正确显示空状态</li>
+              <li>管理端“关于标签互动”新增管理员可编辑/删除固定与备用标签，并让 `/about` 列表即时刷新</li>
+            </ul>
+          </div>
+
+          <div className="update-log-card">
             <div className="update-log-date">2026-03-25</div>
             <ul className="update-log-list">
               <li>新增“棉花糖留言”（共享存储，所有设备可见），后台可清空/删除留言</li>
