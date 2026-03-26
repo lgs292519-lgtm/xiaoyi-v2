@@ -53,6 +53,33 @@ const defaultData = {
   }
 };
 
+function normalizeSongsWithIds(songs) {
+  if (!Array.isArray(songs)) return [];
+  const seen = new Set();
+  return songs.map((s, idx) => {
+    const safeTitle = String(s?.title ?? '').trim();
+    const safeArtist = String(s?.artist ?? '').trim();
+    const safeGenre = String(s?.genre ?? '').trim();
+    const rawId = s?.id;
+
+    let nextId = rawId;
+    const idMissing = rawId === undefined || rawId === null || String(rawId).trim() === '';
+    if (idMissing) {
+      nextId = `${safeTitle}|${safeArtist}|${safeGenre}|${idx}`;
+    } else {
+      nextId = String(rawId);
+    }
+
+    // 避免重复 id 导致误删
+    if (seen.has(String(nextId))) {
+      nextId = `${nextId}|${idx}`;
+    }
+    seen.add(String(nextId));
+
+    return { ...s, id: nextId };
+  });
+}
+
 // 获取所有数据
 export const getData = () => {
   try {
@@ -68,6 +95,9 @@ export const getData = () => {
           ...(parsed.cottonCandy || {}),
         },
       };
+
+      // 兼容旧 songs：给每首歌曲补齐唯一 id
+      merged.songs = normalizeSongsWithIds(merged.songs);
 
       // 兼容旧默认内容：之前关于简介可能被替换成“签名句”，这里自动恢复到新默认段落
       const sig = '对的对的，别怕，天塌了我是顶天立地的人。';
@@ -97,7 +127,8 @@ export const getData = () => {
     // 首次使用，初始化默认数据
     // 关键：初始化默认数据时不要写回服务器，避免把“后台删除后的新配置”覆盖成默认值。
     saveData(defaultData, { skipServerSync: true, markSyncNeeded: false, setLastLocalSaveAt: false });
-    return defaultData;
+    // 给首次默认数据补齐歌曲 id（不改变存储行为也不会影响功能）
+    return { ...defaultData, songs: normalizeSongsWithIds(defaultData.songs) };
   } catch (error) {
     console.error('获取数据失败:', error);
     return defaultData;
