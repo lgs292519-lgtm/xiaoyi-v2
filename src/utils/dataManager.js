@@ -441,7 +441,8 @@ export const promoteAboutExtraTag = async (extraId) => {
 // 管理员：重置固定/备用标签到默认值
 export const resetAboutTagsToDefault = async (options = {}) => {
   const adminPass = options?.adminPass
-  const res = await fetch(`${API_BASE}/api/about-tags/reset`, {
+  // 线上路由要求带尾部 '/' 才能正确匹配
+  const res = await fetch(`${API_BASE}/api/about-tags/reset/`, {
     method: 'POST',
     headers: { 'content-type': 'application/json; charset=utf-8' },
     body: JSON.stringify({ ...(adminPass ? { adminPass } : {}) }),
