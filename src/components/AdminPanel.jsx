@@ -44,7 +44,8 @@ const AdminPanel = ({ onClose }) => {
   })
   const [newSchedule, setNewSchedule] = useState({
     day: '每天',
-    time: '13:00 - 15:00',
+    startTime: '13:00',
+    endTime: '15:00',
     activity: '',
     liveType: '固定',
   });
@@ -535,17 +536,46 @@ const AdminPanel = ({ onClose }) => {
 
   // 固定直播安排
   const handleAddSchedule = () => {
-    if (!String(newSchedule.day ?? '').trim() || !String(newSchedule.time ?? '').trim() || !String(newSchedule.activity ?? '').trim()) {
+    const day = String(newSchedule.day ?? '').trim()
+    const startTime = String(newSchedule.startTime ?? '').trim()
+    const endTime = String(newSchedule.endTime ?? '').trim()
+    const activity = String(newSchedule.activity ?? '').trim()
+
+    if (!day || !startTime || !endTime || !activity) {
       showSaveStatus('请填写完整信息', false);
       return;
     }
-    const item = { ...newSchedule, id: Date.now() };
+
+    const sh = Number(startTime.split(':')?.[0] ?? NaN)
+    const eh = Number(endTime.split(':')?.[0] ?? NaN)
+    if (!Number.isFinite(sh) || !Number.isFinite(eh)) {
+      showSaveStatus('时间格式不正确', false)
+      return
+    }
+    if (sh < 0 || sh > 23 || eh < 0 || eh > 23) {
+      showSaveStatus('时间超出范围', false)
+      return
+    }
+    if (eh <= sh) {
+      showSaveStatus('结束时间必须大于开始时间', false)
+      return
+    }
+
+    // regularSchedule 的 time 字段使用解析器能识别的形式：HH:00 - HH:00
+    const timeStr = `${sh}:00 - ${eh}:00`
+    const item = {
+      id: Date.now(),
+      day,
+      time: timeStr,
+      activity,
+      liveType: newSchedule.liveType,
+    }
     const updated = [...regularSchedule, item];
     setRegularSchedule(updated);
     dataManager.updateRegularSchedule(updated);
     // 兜底：确保其它页面（如 Live）收到刷新事件
     window.dispatchEvent(new Event('xiaoyi-data-updated'))
-    setNewSchedule({ day: '每天', time: '13:00 - 15:00', activity: '', liveType: '固定' });
+    setNewSchedule({ day: '每天', startTime: '13:00', endTime: '15:00', activity: '', liveType: '固定' });
     showSaveStatus('直播安排添加成功');
   };
 
@@ -963,20 +993,31 @@ const AdminPanel = ({ onClose }) => {
                 <div className="add-form">
                   <h4>添加新安排</h4>
                   <div className="form-row">
-                    <input
-                      type="text"
-                      placeholder="适用范围（如：每天 / 周三）"
-                      value={newSchedule.day}
-                      onChange={e => setNewSchedule({ ...newSchedule, day: e.target.value })}
-                    />
                     <select
-                      value={newSchedule.time}
-                      onChange={(e) => setNewSchedule({ ...newSchedule, time: e.target.value })}
+                      value={newSchedule.day}
+                      onChange={(e) => setNewSchedule({ ...newSchedule, day: e.target.value })}
                     >
-                      <option value="13:00 - 15:00">13:00 - 15:00</option>
-                      <option value="16:00 - 18:00">16:00 - 18:00</option>
-                      <option value="21:00 - 22:00">21:00 - 22:00</option>
+                      <option value="每天">每天</option>
+                      <option value="周一">周一</option>
+                      <option value="周二">周二</option>
+                      <option value="周三">周三</option>
+                      <option value="周四">周四</option>
+                      <option value="周五">周五</option>
+                      <option value="周六">周六</option>
+                      <option value="周日">周日</option>
                     </select>
+                    <input
+                      type="time"
+                      step="3600"
+                      value={newSchedule.startTime}
+                      onChange={(e) => setNewSchedule({ ...newSchedule, startTime: e.target.value })}
+                    />
+                    <input
+                      type="time"
+                      step="3600"
+                      value={newSchedule.endTime}
+                      onChange={(e) => setNewSchedule({ ...newSchedule, endTime: e.target.value })}
+                    />
                     <select
                       value={newSchedule.liveType}
                       onChange={(e) => setNewSchedule({ ...newSchedule, liveType: e.target.value })}
