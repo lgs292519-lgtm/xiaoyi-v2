@@ -573,6 +573,86 @@ const AdminPanel = ({ onClose }) => {
     showSaveStatus('已加入固定标签');
   };
 
+  const refreshAboutTagsForAdmin = async () => {
+    const res = await dataManager.getAboutTags()
+    setAboutFixedTags(res?.fixed || [])
+    setAboutExtraTags(res?.extras || [])
+  }
+
+  const handleEditFixedTag = async (tag) => {
+    if (!tag?.id) return
+    const nextName = window.prompt('编辑固定标签名称：', tag.name || '')
+    if (!nextName) return
+    const ok = await dataManager.editAboutTagName(
+      'fixed',
+      tag.id,
+      String(nextName).trim(),
+      isAdminAuthed() ? { adminPass: ADMIN_PASSWORD } : {}
+    )
+    if (!ok) {
+      showSaveStatus('编辑失败（请确认管理员权限或名称可能重复）', false)
+      return
+    }
+    await refreshAboutTagsForAdmin()
+    showSaveStatus('固定标签已编辑')
+    window.dispatchEvent(new Event('xiaoyi-data-updated'))
+  }
+
+  const handleDeleteFixedTag = async (tag) => {
+    if (!tag?.id) return
+    const okConfirm = window.confirm(`确定删除固定标签「${tag.name || ''}」吗？\n删除后粉丝的该标签点赞可能不再生效。`)
+    if (!okConfirm) return
+    const ok = await dataManager.deleteAboutTag(
+      'fixed',
+      tag.id,
+      isAdminAuthed() ? { adminPass: ADMIN_PASSWORD } : {}
+    )
+    if (!ok) {
+      showSaveStatus('删除失败（请确认管理员权限）', false)
+      return
+    }
+    await refreshAboutTagsForAdmin()
+    showSaveStatus('固定标签已删除')
+    window.dispatchEvent(new Event('xiaoyi-data-updated'))
+  }
+
+  const handleEditExtraTag = async (tag) => {
+    if (!tag?.id) return
+    const nextName = window.prompt('编辑备用标签名称：', tag.name || '')
+    if (!nextName) return
+    const ok = await dataManager.editAboutTagName(
+      'extra',
+      tag.id,
+      String(nextName).trim(),
+      isAdminAuthed() ? { adminPass: ADMIN_PASSWORD } : {}
+    )
+    if (!ok) {
+      showSaveStatus('编辑失败（请确认管理员权限或名称可能重复）', false)
+      return
+    }
+    await refreshAboutTagsForAdmin()
+    showSaveStatus('备用标签已编辑')
+    window.dispatchEvent(new Event('xiaoyi-data-updated'))
+  }
+
+  const handleDeleteExtraTag = async (tag) => {
+    if (!tag?.id) return
+    const okConfirm = window.confirm(`确定删除备用标签「${tag.name || ''}」吗？`)
+    if (!okConfirm) return
+    const ok = await dataManager.deleteAboutTag(
+      'extra',
+      tag.id,
+      isAdminAuthed() ? { adminPass: ADMIN_PASSWORD } : {}
+    )
+    if (!ok) {
+      showSaveStatus('删除失败（请确认管理员权限）', false)
+      return
+    }
+    await refreshAboutTagsForAdmin()
+    showSaveStatus('备用标签已删除')
+    window.dispatchEvent(new Event('xiaoyi-data-updated'))
+  }
+
   return (
     <div className="admin-overlay" onClick={onClose}>
       <div className="admin-panel" onClick={e => e.stopPropagation()}>
@@ -1014,7 +1094,25 @@ const AdminPanel = ({ onClose }) => {
                       (aboutFixedTags || []).map((t) => (
                         <div key={t.id} className="tag-row">
                           <span className="tag-row-name">{t.name}</span>
-                          <span className="tag-row-count">{t.likeCount ?? 0} 赞</span>
+                          <div className="tag-row-right">
+                            <span className="tag-row-count">{t.likeCount ?? 0} 赞</span>
+                            <div className="tag-actions">
+                              <button
+                                type="button"
+                                className="btn-tag-edit btn-add--small"
+                                onClick={() => handleEditFixedTag(t)}
+                              >
+                                编辑
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-tag-delete btn-add--small"
+                                onClick={() => handleDeleteFixedTag(t)}
+                              >
+                                删除
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       ))
                     )}
@@ -1035,9 +1133,31 @@ const AdminPanel = ({ onClose }) => {
                             <span className="tag-row-name">{t.name}</span>
                             <span className="tag-row-count">{t.suggestCount ?? 0} 提名</span>
                           </div>
-                          <button className="btn-add btn-add--small" onClick={() => handlePromoteExtraTag(t.id)}>
-                            <FiPlus /> 加入固定
-                          </button>
+                          <div className="tag-row-right">
+                            <div className="tag-actions">
+                              <button
+                                type="button"
+                                className="btn-tag-edit btn-add--small"
+                                onClick={() => handleEditExtraTag(t)}
+                              >
+                                编辑
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-tag-delete btn-add--small"
+                                onClick={() => handleDeleteExtraTag(t)}
+                              >
+                                删除
+                              </button>
+                            </div>
+                            <button
+                              className="btn-add btn-add--small"
+                              onClick={() => handlePromoteExtraTag(t.id)}
+                              type="button"
+                            >
+                              <FiPlus /> 加入固定
+                            </button>
+                          </div>
                         </div>
                       ))
                     )}

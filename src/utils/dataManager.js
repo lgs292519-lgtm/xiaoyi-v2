@@ -438,6 +438,32 @@ export const promoteAboutExtraTag = async (extraId) => {
   return data?.ok === true
 }
 
+// 管理员：删除固定/备用标签
+export const deleteAboutTag = async (tagType, id, options = {}) => {
+  const adminPass = options?.adminPass
+  const res = await fetch(`${API_BASE}/api/about-tags/delete`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ tagType, id, ...(adminPass ? { adminPass } : {}) }),
+  })
+  if (!res.ok) return false
+  const data = await res.json().catch(() => ({}))
+  return data?.ok === true
+}
+
+// 管理员：编辑固定/备用标签名称
+export const editAboutTagName = async (tagType, id, name, options = {}) => {
+  const adminPass = options?.adminPass
+  const res = await fetch(`${API_BASE}/api/about-tags/edit`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify({ tagType, id, name, ...(adminPass ? { adminPass } : {}) }),
+  })
+  if (!res.ok) return false
+  const data = await res.json().catch(() => ({}))
+  return data?.ok === true
+}
+
 // 重置为默认数据
 export const resetData = () => {
   saveData(defaultData);
@@ -467,6 +493,8 @@ export default {
   voteAboutExtraTag,
   suggestAboutTag,
   promoteAboutExtraTag,
+  deleteAboutTag,
+  editAboutTagName,
   syncAdminDataFromServer,
   resetData
 };

@@ -45,7 +45,10 @@ const About = () => {
   }
 
   useEffect(() => {
-    const refresh = () => setData(dataManager.getData());
+    const refresh = async () => {
+      setData(dataManager.getData());
+      await refreshAboutTags();
+    };
     refresh();
     window.addEventListener('xiaoyi-avatar-updated', refresh);
     window.addEventListener('xiaoyi-data-updated', refresh);
