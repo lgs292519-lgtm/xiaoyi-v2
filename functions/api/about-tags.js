@@ -46,11 +46,9 @@ async function ensureTables(db) {
     .run()
 }
 
-async function seedDefaultFixedTagsIfEmpty(db) {
-  const cnt = await db.prepare(`SELECT COUNT(*) as c FROM about_fixed_tags`).first()
-  const c = Number(cnt?.c ?? 0)
-  if (c > 0) return
-
+async function seedDefaultFixedTags(db) {
+  // 允许“重置为默认数据/删除后再恢复”：
+  // 无论当前 about_fixed_tags 表是否为空，都补齐默认固定标签（name 唯一，不会覆盖原 likeCount）。
   const now = new Date().toISOString()
   for (const tag of DEFAULT_FIXED_TAGS) {
     await db
@@ -74,7 +72,7 @@ export async function onRequest(context) {
   }
 
   await ensureTables(db)
-  await seedDefaultFixedTagsIfEmpty(db)
+  await seedDefaultFixedTags(db)
 
   if (method === 'GET') {
     const fixedRows = await db

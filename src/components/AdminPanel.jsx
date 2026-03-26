@@ -29,6 +29,7 @@ const AdminPanel = ({ onClose }) => {
   const [regularSchedule, setRegularSchedule] = useState([]);
   const [aboutIntro, setAboutIntro] = useState({});
   const [headerText, setHeaderText] = useState({});
+  const [newExtraTagName, setNewExtraTagName] = useState('');
   const [newLive, setNewLive] = useState(() => {
     const t = new Date()
     const dateISO = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`
@@ -196,7 +197,7 @@ const AdminPanel = ({ onClose }) => {
   };
 
   // 重置：清空本地配置，恢复到代码里的默认数据
-  const handleResetToDefault = () => {
+  const handleResetToDefault = async () => {
     const ok = window.confirm('确定要重置为默认数据吗？这会清空当前浏览器的本地配置。');
     if (!ok) return;
 
@@ -212,7 +213,17 @@ const AdminPanel = ({ onClose }) => {
     setAboutIntro(fresh.aboutIntro || {});
     setHeaderText(fresh.headerText || {});
 
+    // 标签数据在 D1 中，需要重新拉取一次，才能在“删除后重置”时恢复默认固定标签
+    try {
+      const res = await dataManager.getAboutTags()
+      setAboutFixedTags(res?.fixed || [])
+      setAboutExtraTags(res?.extras || [])
+    } catch {
+      // 忽略：不影响其它本地数据重置
+    }
+
     showSaveStatus('已重置为默认数据');
+    window.dispatchEvent(new Event('xiaoyi-data-updated'))
   };
 
   // 歌单管理
@@ -650,6 +661,23 @@ const AdminPanel = ({ onClose }) => {
     }
     await refreshAboutTagsForAdmin()
     showSaveStatus('备用标签已删除')
+    window.dispatchEvent(new Event('xiaoyi-data-updated'))
+  }
+
+  const handleAddExtraTag = async () => {
+    const name = String(newExtraTagName ?? '').trim()
+    if (!name) {
+      showSaveStatus('请输入标签名称', false)
+      return
+    }
+    const created = await dataManager.suggestAboutTag(name)
+    if (!created?.id) {
+      showSaveStatus('添加失败（可能已存在同名标签）', false)
+      return
+    }
+    setNewExtraTagName('')
+    await refreshAboutTagsForAdmin()
+    showSaveStatus('备用标签已添加')
     window.dispatchEvent(new Event('xiaoyi-data-updated'))
   }
 
@@ -1161,6 +1189,28 @@ const AdminPanel = ({ onClose }) => {
                         </div>
                       ))
                     )}
+                  </div>
+
+                  <div className="divider" />
+
+                  <div className="add-tag-form" style={{ marginTop: '1rem' }}>
+                    <h5 style={{ margin: '0 0 0.75rem', color: 'rgba(255,255,255,0.9)', fontSize: '0.95rem' }}>
+                      直接添加备用标签
+                    </h5>
+                    <div className="form-row">
+                      <input
+                        type="text"
+                        value={newExtraTagName}
+                        onChange={(e) => setNewExtraTagName(e.target.value)}
+                        placeholder="输入标签名（回车或点击添加）"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleAddExtraTag()
+                        }}
+                      />
+                      <button className="btn-add btn-add--small" onClick={handleAddExtraTag} type="button">
+                        <FiPlus /> 添加
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
