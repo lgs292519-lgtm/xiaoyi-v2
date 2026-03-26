@@ -221,7 +221,11 @@ const AdminPanel = ({ onClose }) => {
       showSaveStatus('请输入歌曲名称', false);
       return;
     }
-    const song = { ...newSong, id: Date.now() };
+    // Date.now 在短时间内可能冲突，使用额外随机数确保唯一
+    const song = {
+      ...newSong,
+      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    };
     const updatedSongs = [...songs, song];
     setSongs(updatedSongs);
     dataManager.saveData({ ...data, songs: updatedSongs });
@@ -229,8 +233,10 @@ const AdminPanel = ({ onClose }) => {
     showSaveStatus('歌曲添加成功');
   };
 
-  const handleDeleteSong = (id) => {
-    const updatedSongs = songs.filter(s => s.id !== id);
+  const handleDeleteSong = (songIndex) => {
+    const idx = Number.parseInt(String(songIndex ?? ''), 10);
+    if (!Number.isFinite(idx)) return;
+    const updatedSongs = songs.filter((_, i) => i !== idx);
     setSongs(updatedSongs);
     dataManager.saveData({ ...data, songs: updatedSongs });
     showSaveStatus('歌曲已删除');
@@ -644,13 +650,13 @@ const AdminPanel = ({ onClose }) => {
                 <div className="song-list">
                   <h4>当前歌单 ({songs.length} 首)</h4>
                   <div className="song-grid">
-                    {songs.map(song => (
-                      <div key={song.id} className="song-item">
+                    {songs.map((song, index) => (
+                      <div key={song.id ?? `${song.title}-${index}`} className="song-item">
                         <span className="song-title">{song.title}</span>
                         <span className="song-genre">{song.genre}</span>
                         <button
                           className="btn-delete"
-                          onClick={() => handleDeleteSong(song.id)}
+                          onClick={() => handleDeleteSong(index)}
                         >
                           <FiTrash2 />
                         </button>
